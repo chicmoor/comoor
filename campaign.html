@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            min-height: 100vh;
+        }
+
+        .hero-image {
+            width: 100%;
+            max-width: 600px;
+            max-height: 60vh;
+            height: auto;
+            display: block;
+            margin: 40px auto 0;
+        }
+
+        .form-section {
+            padding: 30px 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #555;
+            font-size: 12px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #2980b9;
+        }
+
+        /* Tablet styles */
+        @media (max-width: 1024px) {
+            .container {
+                max-width: 90%;
+            }
+            
+            .form-section {
+                padding: 50px 30px;
+            }
+            
+            .form-title {
+                font-size: 28px;
+            }
+            
+            .form-group label {
+                font-size: 16px;
+            }
+            
+            .form-group input {
+                font-size: 16px;
+                padding: 15px;
+            }
+            
+            .submit-btn {
+                font-size: 18px;
+                padding: 18px;
+            }
+        }
+
+        /* Mobile styles */
+        @media (max-width: 768px) {
+            .container {
+                max-width: 100%;
+                margin: 0;
+            }
+            
+            .hero-image {
+                max-width: 100%;
+            }
+            
+            .form-section {
+                padding: 30px 20px;
+            }
+            
+            .form-title {
+                font-size: 24px;
+                margin-bottom: 30px;
+            }
+            
+            .form-group {
+                margin-bottom: 25px;
+            }
+            
+            .form-group label {
+                font-size: 16px;
+                margin-bottom: 8px;
+            }
+            
+            .form-group input {
+                padding: 15px;
+                font-size: 16px;
+            }
+            
+            .submit-btn {
+                padding: 15px;
+                font-size: 18px;
+            }
+        }
+
+        /* Small mobile styles */
+        @media (max-width: 480px) {
+            .form-section {
+                padding: 20px 15px;
+            }
+            
+            .form-title {
+                font-size: 22px;
+            }
+            
+            .form-group input {
+                padding: 12px;
+            }
+            
+            .submit-btn {
+                padding: 14px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Image -->
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1080' height='1920' viewBox='0 0 1080 1920'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23ff6b6b;stop-opacity:1' /%3E%3Cstop offset='50%25' style='stop-color:%234ecdc4;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%2345b7d1;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grad)'/%3E%3Ctext x='50%25' y='45%25' font-family='Arial,sans-serif' font-size='120' fill='white' text-anchor='middle' font-weight='bold'%3ECAMPAIGN%3C/text%3E%3Ctext x='50%25' y='55%25' font-family='Arial,sans-serif' font-size='80' fill='white' text-anchor='middle'%3E2024%3C/text%3E%3Ccircle cx='540' cy='1200' r='200' fill='rgba(255,255,255,0.2)' /%3E%3Ccircle cx='200' cy='400' r='80' fill='rgba(255,255,255,0.15)' /%3E%3Ccircle cx='880' cy='600' r='120' fill='rgba(255,255,255,0.1)' /%3E%3C/svg%3E" 
+             alt="Campaign Hero Image" 
+             class="hero-image">
+        
+        <!-- Form Section -->
+        <div class="form-section">
+            <h1 class="form-title">加入我們的活動</h1>
+            
+            <form id="campaignForm">
+                <div class="form-group">
+                    <label for="name">姓名 *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="account">官網帳號 *</label>
+                    <input type="text" id="account" name="account" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">聯絡電話 *</label>
+                    <input type="text" id="phone" name="phone" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">想跟 Comoor 說的話 *</label>
+                    <input type="text" id="message" name="message" required>
+                </div>
+                
+                <button type="submit" class="submit-btn">提交</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('campaignForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const account = document.getElementById('account').value;
+            const phone = document.getElementById('phone').value;
+            const message = document.getElementById('message').value;
+            
+            if (name && account && phone && message) {
+                alert('感謝您的提交！\n\n姓名: ' + name + '\n官網帳號: ' + account + '\n聯絡電話: ' + phone + '\n想說的話: ' + message);
+            } else {
+                alert('請填寫所有必填欄位。');
+            }
+        });
+    </script>
+</body>
+</html>
