@@ -88,28 +88,27 @@
     </div>
 
     <script>
-        // Image data with default probabilities
-        let images = [
-            { title: "S__172548136", path: "assets/images/S__172548136.jpg", probability: 0.2 },
-            { title: "S__172548137", path: "assets/images/S__172548137.jpg", probability: 0.2 },
-            { title: "S__172548138", path: "assets/images/S__172548138.jpg", probability: 0.2 },
-            { title: "S__172548139", path: "assets/images/S__172548139.jpg", probability: 0.2 },
-            { title: "S__172548140", path: "assets/images/S__172548140.jpg", probability: 0.2 }
+        // Image data (equal probability for all images)
+        const images = [
+            "assets/images/S__172548136.jpg",
+            "assets/images/S__172548137.jpg",
+            "assets/images/S__172548138.jpg",
+            "assets/images/S__172548139.jpg",
+            "assets/images/S__172548140.jpg"
         ];
 
         // Google Sheets CSV URL with CORS proxy
         const SHEET_ID = '1ecyT2EcO6shL61eaANXyIS4izuQPlL4eWwJt07GwHPE';
         const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
-        const SHEETS_CSV_URL = CORS_PROXY + encodeURIComponent(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`);
-        const PROBABILITY_SHEET_URL = CORS_PROXY + encodeURIComponent(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=1171275997`);
+        const TEXT_PROBABILITY_SHEET_URL = CORS_PROXY + encodeURIComponent(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`);
         
-        // Fallback texts (original hardcoded texts)
+        // Fallback texts with equal probabilities
         const fallbackTexts = [
-            "今天很開心",
-            "昨天很美好", 
-            "很期待明天",
-            "這兩天都是好天氣",
-            "會是一個好年的！"
+            { text: "今天很開心", probability: 0.2 },
+            { text: "昨天很美好", probability: 0.2 },
+            { text: "很期待明天", probability: 0.2 },
+            { text: "這兩天都是好天氣", probability: 0.2 },
+            { text: "會是一個好年的！", probability: 0.2 }
         ];
 
         // Global texts array that will be populated from sheets or fallback
@@ -119,24 +118,24 @@
             return array[Math.floor(Math.random() * array.length)];
         }
 
-        // Weighted random selection based on probabilities
-        function getWeightedRandomImage(images) {
-            const totalWeight = images.reduce((sum, img) => sum + img.probability, 0);
+        // Weighted random selection for texts based on probabilities
+        function getWeightedRandomText(texts) {
+            const totalWeight = texts.reduce((sum, textObj) => sum + textObj.probability, 0);
             let random = Math.random() * totalWeight;
 
-            for (let img of images) {
-                random -= img.probability;
+            for (let textObj of texts) {
+                random -= textObj.probability;
                 if (random <= 0) {
-                    return img;
+                    return textObj;
                 }
             }
 
-            // Fallback to last image if something goes wrong
-            return images[images.length - 1];
+            // Fallback to last text if something goes wrong
+            return texts[texts.length - 1];
         }
 
-        // Validate if CSV data looks like probability data (2 columns: title, number)
-        function validateProbabilitySheet(csvData) {
+        // Validate if CSV data looks like text probability data (2 columns: text, number)
+        function validateTextProbabilitySheet(csvData) {
             const lines = csvData.trim().split('\n');
             if (lines.length === 0) return false;
 
@@ -153,21 +152,24 @@
             }
 
             const isValid = validLines > 0;
-            console.log(`🔍 Probability sheet validation: ${isValid ? '✅ VALID' : '❌ INVALID'} (${validLines}/${Math.min(3, lines.length)} lines have numeric probabilities)`);
+            console.log(`🔍 Text probability sheet validation: ${isValid ? '✅ VALID' : '❌ INVALID'} (${validLines}/${Math.min(3, lines.length)} lines have text with numeric probabilities)`);
             return isValid;
         }
 
-        // Parse CSV data for image probabilities
-        function parseProbabilityCSV(csvData) {
+        // Parse CSV data for text probabilities
+        function parseTextProbabilityCSV(csvData) {
             const lines = csvData.trim().split('\n');
-            const probabilityMap = new Map();
+            const textsFromSheet = [];
 
-            console.log('📊 Raw CSV data from "圖片機率" sheet:');
+            console.log('📊 Raw CSV data from "金句" sheet (expecting text,probability format):');
             console.log(csvData);
+            console.log('📋 Expected format: "Text content,0.5" (text in column 1, probability number in column 2)');
 
             // Validate sheet format
-            if (!validateProbabilitySheet(csvData)) {
-                console.warn('⚠️  Warning: CSV data does not appear to be probability data! Check if correct sheet is being accessed.');
+            if (!validateTextProbabilitySheet(csvData)) {
+                console.warn('⚠️  Warning: CSV data does not appear to have probabilities in column 2!');
+                console.warn('Current data appears to have text,S__identifier format instead of text,probability');
+                console.warn('Please update the sheet to have probability numbers in column 2');
             }
 
             console.log('📋 Processing CSV lines:');
@@ -178,90 +180,54 @@
 
                 // Handle CSV parsing - split by comma and clean quotes
                 const parts = line.split(',').map(part => part.replace(/^\"|\"$/g, '').trim());
+                console.log(`  Raw parts: [${parts.map(p => `"${p}"`).join(', ')}]`);
 
                 if (parts.length >= 2) {
-                    const title = parts[0];
-                    const probability = parseFloat(parts[1]);
+                    const text = parts[0];
+                    const secondColumn = parts[1];
+                    const probability = parseFloat(secondColumn);
 
-                    console.log(`  → Title: "${title}", Probability: ${probability}`);
+                    console.log(`  → Text: "${text}"`);
+                    console.log(`  → Second column: "${secondColumn}"`);
+                    console.log(`  → Parsed as number: ${probability} (valid: ${!isNaN(probability)})`);
 
-                    if (title && !isNaN(probability) && probability > 0) {
-                        probabilityMap.set(title, probability);
-                        console.log(`  ✅ Added to map: ${title} = ${probability}`);
+                    if (text && !isNaN(probability) && probability > 0) {
+                        textsFromSheet.push({ text: text, probability: probability });
+                        console.log(`  ✅ Added: "${text}" = ${probability}`);
                     } else {
-                        console.log(`  ❌ Skipped (invalid data)`);
+                        console.log(`  ❌ Skipped: ${!text ? 'empty text' : isNaN(probability) ? 'second column is not a valid number' : 'probability <= 0'}`);
                     }
+                } else if (parts.length === 1 && parts[0]) {
+                    // Handle single column case
+                    const text = parts[0];
+                    console.log(`  → Single column text: "${text}"`);
+                    console.log(`  ❌ Skipped: no probability column found`);
                 } else {
-                    console.log(`  ❌ Skipped (insufficient columns)`);
+                    console.log(`  ❌ Skipped: insufficient data`);
                 }
             }
 
-            console.log('🎯 Final probability map:', Object.fromEntries(probabilityMap));
-            return probabilityMap;
-        }
+            console.log('🎯 Final texts with probabilities:', textsFromSheet);
+            console.log(`📈 Successfully parsed ${textsFromSheet.length} texts with valid probabilities`);
 
-        // Validate if CSV data looks like text data (single column of Chinese text)
-        function validateTextSheet(csvData) {
-            const lines = csvData.trim().split('\n');
-            if (lines.length === 0) return false;
-
-            // Check if most lines contain Chinese characters and are not probability format
-            let textLines = 0;
-            for (let i = 0; i < Math.min(5, lines.length); i++) {
-                const line = lines[i].trim();
-                const parts = line.split(',').map(part => part.replace(/^\"|\"$/g, '').trim());
-
-                // Check if it's NOT probability format (not 2 columns with number in second)
-                const isNotProbability = !(parts.length >= 2 && !isNaN(parseFloat(parts[1])));
-
-                // Check if contains Chinese characters
-                const hasChinese = /[\u4e00-\u9fff]/.test(line);
-
-                if (isNotProbability && (hasChinese || line.length > 0)) {
-                    textLines++;
-                }
-            }
-
-            const isValid = textLines > 0;
-            console.log(`🔍 Text sheet validation: ${isValid ? '✅ VALID' : '❌ INVALID'} (${textLines}/${Math.min(5, lines.length)} lines appear to be text content)`);
-            return isValid;
-        }
-
-        // Parse CSV data and extract text content
-        function parseCSVTexts(csvData) {
-            const lines = csvData.trim().split('\n');
-            const textsFromSheet = [];
-
-            console.log('📝 Raw CSV data from "金句" sheet:');
-            console.log(csvData.substring(0, 200) + (csvData.length > 200 ? '...' : ''));
-
-            // Validate sheet format
-            if (!validateTextSheet(csvData)) {
-                console.warn('⚠️  Warning: CSV data does not appear to be text data! Check if correct sheet is being accessed.');
-            }
-            
-            for (let line of lines) {
-                // Handle CSV parsing - remove quotes, trim whitespace, handle commas
-                let text = line.replace(/^"|"$/g, '').trim();
-                
-                // If line contains commas, take the first column only
-                if (text.includes(',')) {
-                    text = text.split(',')[0].replace(/^"|"$/g, '').trim();
-                }
-                
-                // Only add non-empty texts
-                if (text && text.length > 0 && text !== '' && text !== '""') {
-                    textsFromSheet.push(text);
-                }
-            }
-            
-            console.log('Parsed texts from CSV:', textsFromSheet);
             return textsFromSheet.length > 0 ? textsFromSheet : fallbackTexts;
         }
 
-        // Load probability data from Google Sheets with caching
-        async function loadProbabilitiesFromSheets() {
-            const CACHE_KEY = 'card_probabilities_cache';
+
+        // Clear all caches (for debugging/development)
+        function clearAllCaches() {
+            localStorage.removeItem('card_texts_probabilities_cache');
+            localStorage.removeItem('card_texts_probabilities_cache_time');
+            localStorage.removeItem('card_texts_cache');
+            localStorage.removeItem('card_texts_cache_time');
+            localStorage.removeItem('card_probabilities_cache');
+            localStorage.removeItem('card_probabilities_cache_time');
+            console.log('🗑️  All caches cleared - will fetch fresh data from Google Sheets');
+        }
+
+        // Load texts with probabilities from Google Sheets with caching
+        async function loadTextsWithProbabilities() {
+            const CACHE_KEY = 'card_texts_probabilities_cache';
             const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
 
             try {
@@ -272,115 +238,45 @@
                 if (cached && cacheTime) {
                     const age = Date.now() - parseInt(cacheTime);
                     if (age < CACHE_DURATION) {
-                        console.log('Using cached probabilities');
-                        const probabilityMap = new Map(JSON.parse(cached));
-                        updateImageProbabilities(probabilityMap);
-                        return;
-                    }
-                }
-
-                // Fetch from Google Sheets
-                console.log('🔗 Fetching probabilities from "圖片機率" sheet (gid=1171275997)...');
-                const response = await fetch(PROBABILITY_SHEET_URL);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const csvData = await response.text();
-                const probabilityMap = parseProbabilityCSV(csvData);
-
-                // Update image probabilities and cache
-                updateImageProbabilities(probabilityMap);
-                localStorage.setItem(CACHE_KEY, JSON.stringify([...probabilityMap]));
-                localStorage.setItem(CACHE_KEY + '_time', Date.now().toString());
-
-                console.log(`🎉 Successfully loaded probabilities for ${probabilityMap.size} images from Google Sheets!`);
-
-            } catch (error) {
-                console.error('❌ Failed to load probabilities from "圖片機率" sheet:', error.message);
-                console.log('📋 Error details:', {
-                    url: PROBABILITY_SHEET_URL,
-                    gid: '1171275997',
-                    sheetName: '圖片機率'
-                });
-                console.log('🔄 Using default equal probabilities (0.2 each)');
-
-                // Clear invalid cache
-                localStorage.removeItem(CACHE_KEY);
-                localStorage.removeItem(CACHE_KEY + '_time');
-            }
-        }
-
-        // Update image probabilities based on data from sheets
-        function updateImageProbabilities(probabilityMap) {
-            console.log('🔄 Updating image probabilities...');
-            console.log('Available probabilities from sheet:', Object.fromEntries(probabilityMap));
-
-            images.forEach(img => {
-                const oldProbability = img.probability;
-                if (probabilityMap.has(img.title)) {
-                    img.probability = probabilityMap.get(img.title);
-                    console.log(`  📈 ${img.title}: ${oldProbability} → ${img.probability}`);
-                } else {
-                    console.log(`  ⚠️  ${img.title}: No probability found in sheet, keeping default ${img.probability}`);
-                }
-            });
-
-            const totalProbability = images.reduce((sum, img) => sum + img.probability, 0);
-            console.log('✨ Final image probabilities:');
-            images.forEach(img => {
-                const percentage = ((img.probability / totalProbability) * 100).toFixed(1);
-                console.log(`  🎲 ${img.title}: ${img.probability} (${percentage}%)`);
-            });
-            console.log(`📊 Total probability weight: ${totalProbability}`);
-        }
-
-        // Load texts from Google Sheets with caching
-        async function loadTextsFromSheets() {
-            const CACHE_KEY = 'card_texts_cache';
-            const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
-
-            try {
-                // Check cache first
-                const cached = localStorage.getItem(CACHE_KEY);
-                const cacheTime = localStorage.getItem(CACHE_KEY + '_time');
-
-                if (cached && cacheTime) {
-                    const age = Date.now() - parseInt(cacheTime);
-                    if (age < CACHE_DURATION) {
-                        console.log('Using cached texts');
+                        console.log('📚 Using cached texts with probabilities (cached ' + Math.round(age/1000) + ' seconds ago)');
+                        console.log('💡 To fetch fresh data, open browser console and run: clearAllCaches(); then refresh');
                         texts = JSON.parse(cached);
+                        logTextSummary();
                         return;
+                    } else {
+                        console.log('⏰ Cache expired, fetching fresh data...');
                     }
+                } else {
+                    console.log('📥 No cache found, fetching fresh data...');
                 }
 
                 // Fetch from Google Sheets
-                console.log('🔗 Fetching texts from "金句" sheet (gid=0)...');
-                const response = await fetch(SHEETS_CSV_URL);
+                console.log('🔗 Fetching texts with probabilities from "金句" sheet (gid=0)...');
+                const response = await fetch(TEXT_PROBABILITY_SHEET_URL);
 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
 
                 const csvData = await response.text();
-                const newTexts = parseCSVTexts(csvData);
+                const newTexts = parseTextProbabilityCSV(csvData);
 
                 // Update texts and cache
                 texts = newTexts;
                 localStorage.setItem(CACHE_KEY, JSON.stringify(newTexts));
                 localStorage.setItem(CACHE_KEY + '_time', Date.now().toString());
 
-                console.log(`Loaded ${texts.length} texts from Google Sheets`);
+                console.log(`🎉 Successfully loaded ${texts.length} texts with probabilities from Google Sheets!`);
+                logTextSummary();
 
             } catch (error) {
                 console.error('❌ Failed to load texts from "金句" sheet:', error.message);
                 console.log('📋 Error details:', {
-                    url: SHEETS_CSV_URL,
+                    url: TEXT_PROBABILITY_SHEET_URL,
                     gid: '0',
                     sheetName: '金句'
                 });
-                console.log('🔄 Using fallback hardcoded texts');
+                console.log('🔄 Using fallback hardcoded texts with equal probabilities');
                 texts = [...fallbackTexts];
 
                 // Clear invalid cache
@@ -389,14 +285,26 @@
             }
         }
 
+        // Log summary of text probabilities
+        function logTextSummary() {
+            const totalProbability = texts.reduce((sum, textObj) => sum + textObj.probability, 0);
+            console.log('✨ Final text probabilities:');
+            texts.forEach(textObj => {
+                const percentage = ((textObj.probability / totalProbability) * 100).toFixed(1);
+                console.log(`  📝 "${textObj.text}": ${textObj.probability} (${percentage}%)`);
+            });
+            console.log(`📊 Total probability weight: ${totalProbability}`);
+        }
+
         function initializeCard() {
-            const randomImage = getWeightedRandomImage(images);
-            const randomText = getRandomItem(texts);
+            const randomImage = getRandomItem(images);
+            const randomText = getWeightedRandomText(texts);
 
-            console.log(`🎯 Selected image: ${randomImage.title} (probability: ${randomImage.probability})`);
+            console.log(`🖼️  Selected image: ${randomImage} (random selection)`);
+            console.log(`📝 Selected text: "${randomText.text}" (probability: ${randomText.probability})`);
 
-            document.getElementById('cardImage').src = randomImage.path;
-            document.getElementById('textOverlay').textContent = randomText;
+            document.getElementById('cardImage').src = randomImage;
+            document.getElementById('textOverlay').textContent = randomText.text;
         }
 
         // Initialize the application
@@ -404,29 +312,30 @@
             console.log('🚀 Initializing Card Application...');
             console.log('📚 Google Sheets Configuration:');
             console.log(`  Sheet ID: ${SHEET_ID}`);
-            console.log(`  "金句" sheet: gid=0`);
-            console.log(`  "圖片機率" sheet: gid=1171275997`);
+            console.log(`  "金句" sheet (with probabilities): gid=0`);
 
-            // Load probabilities first
-            await loadProbabilitiesFromSheets();
-
-            // Load texts
-            await loadTextsFromSheets();
+            // Load texts with probabilities
+            await loadTextsWithProbabilities();
 
             // Summary
             console.log('📊 Initialization Summary:');
             console.log(`  Available texts: ${texts.length}`);
-            console.log(`  Available images: ${images.length}`);
-            console.log(`  Total probability weight: ${images.reduce((sum, img) => sum + img.probability, 0)}`);
+            console.log(`  Available images: ${images.length} (equal probability)`);
+            const totalTextWeight = texts.reduce((sum, textObj) => sum + textObj.probability, 0);
+            console.log(`  Total text probability weight: ${totalTextWeight}`);
 
             // Then initialize the card
             initializeCard();
             console.log('✅ Card application ready!');
         }
 
+        // Make functions available globally for debugging
+        window.clearAllCaches = clearAllCaches;
+        window.initializeApp = initializeApp;
+
         // Initialize the card when page loads
         window.addEventListener('load', initializeApp);
-        
+
         // Optional: Click to change both image and text
         document.querySelector('.image-container').addEventListener('click', initializeCard);
     </script>
