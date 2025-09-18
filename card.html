@@ -54,6 +54,18 @@
             color: #333;
             text-align: center;
             backdrop-filter: blur(5px);
+            text-decoration: none;
+            cursor: default;
+        }
+
+        .text-overlay.winner-link {
+            cursor: pointer;
+            text-decoration: underline;
+            color: #0066cc;
+        }
+
+        .text-overlay.winner-link:hover {
+            color: #004499;
         }
 
         @media (max-width: 768px) {
@@ -83,7 +95,7 @@
     <div class="container">
         <div class="image-container">
             <img id="cardImage" src="" alt="Card Image" class="card-image">
-            <span id="textOverlay" class="text-overlay"></span>
+            <a id="textOverlay" class="text-overlay" href="#"></a>
         </div>
     </div>
 
@@ -104,11 +116,11 @@
         
         // Fallback texts with equal probabilities
         const fallbackTexts = [
-            { text: "今天很開心", probability: 0.2 },
-            { text: "昨天很美好", probability: 0.2 },
-            { text: "很期待明天", probability: 0.2 },
-            { text: "這兩天都是好天氣", probability: 0.2 },
-            { text: "會是一個好年的！", probability: 0.2 }
+            { text: "今天很開心", probability: 0.2, won: 0 },
+            { text: "昨天很美好", probability: 0.2, won: 0 },
+            { text: "很期待明天", probability: 0.2, won: 0 },
+            { text: "這兩天都是好天氣", probability: 0.2, won: 0 },
+            { text: "會是一個好年的！", probability: 0.2, won: 0 }
         ];
 
         // Global texts array that will be populated from sheets or fallback
@@ -134,7 +146,7 @@
             return texts[texts.length - 1];
         }
 
-        // Validate if CSV data looks like text probability data (2 columns: text, number)
+        // Validate if CSV data looks like text probability data (3 columns: text, probability, won)
         function validateTextProbabilitySheet(csvData) {
             const lines = csvData.trim().split('\n');
             if (lines.length === 0) return false;
@@ -161,15 +173,15 @@
             const lines = csvData.trim().split('\n');
             const textsFromSheet = [];
 
-            console.log('📊 Raw CSV data from "金句" sheet (expecting text,probability format):');
+            console.log('📊 Raw CSV data from "金句" sheet (expecting text,probability,won format):');
             console.log(csvData);
-            console.log('📋 Expected format: "Text content,0.5" (text in column 1, probability number in column 2)');
+            console.log('📋 Expected format: "Text content,0.5,1" (text in column 1, probability number in column 2, won flag in column 3)');
 
             // Validate sheet format
             if (!validateTextProbabilitySheet(csvData)) {
                 console.warn('⚠️  Warning: CSV data does not appear to have probabilities in column 2!');
-                console.warn('Current data appears to have text,S__identifier format instead of text,probability');
-                console.warn('Please update the sheet to have probability numbers in column 2');
+                console.warn('Current data appears to have text,S__identifier format instead of text,probability,won');
+                console.warn('Please update the sheet to have probability numbers in column 2 and won flags (0/1) in column 3');
             }
 
             console.log('📋 Processing CSV lines:');
@@ -185,15 +197,23 @@
                 if (parts.length >= 2) {
                     const text = parts[0];
                     const secondColumn = parts[1];
+                    const thirdColumn = parts[2] || '0'; // Default to 0 if third column is missing
                     const probability = parseFloat(secondColumn);
+                    const won = parseInt(thirdColumn);
 
                     console.log(`  → Text: "${text}"`);
                     console.log(`  → Second column: "${secondColumn}"`);
-                    console.log(`  → Parsed as number: ${probability} (valid: ${!isNaN(probability)})`);
+                    console.log(`  → Third column: "${thirdColumn}"`);
+                    console.log(`  → Parsed probability: ${probability} (valid: ${!isNaN(probability)})`);
+                    console.log(`  → Parsed won flag: ${won} (valid: ${!isNaN(won)})`);
 
                     if (text && !isNaN(probability) && probability > 0) {
-                        textsFromSheet.push({ text: text, probability: probability });
-                        console.log(`  ✅ Added: "${text}" = ${probability}`);
+                        textsFromSheet.push({
+                            text: text,
+                            probability: probability,
+                            won: !isNaN(won) ? won : 0
+                        });
+                        console.log(`  ✅ Added: "${text}" = ${probability}, won=${!isNaN(won) ? won : 0}`);
                     } else {
                         console.log(`  ❌ Skipped: ${!text ? 'empty text' : isNaN(probability) ? 'second column is not a valid number' : 'probability <= 0'}`);
                     }
@@ -291,7 +311,8 @@
             console.log('✨ Final text probabilities:');
             texts.forEach(textObj => {
                 const percentage = ((textObj.probability / totalProbability) * 100).toFixed(1);
-                console.log(`  📝 "${textObj.text}": ${textObj.probability} (${percentage}%)`);
+                const winnerStatus = textObj.won === 1 ? '🏆 WINNER' : '';
+                console.log(`  📝 "${textObj.text}": ${textObj.probability} (${percentage}%) ${winnerStatus}`);
             });
             console.log(`📊 Total probability weight: ${totalProbability}`);
         }
@@ -301,10 +322,24 @@
             const randomText = getWeightedRandomText(texts);
 
             console.log(`🖼️  Selected image: ${randomImage} (random selection)`);
-            console.log(`📝 Selected text: "${randomText.text}" (probability: ${randomText.probability})`);
+            console.log(`📝 Selected text: "${randomText.text}" (probability: ${randomText.probability}, won: ${randomText.won})`);
 
+            const textOverlay = document.getElementById('textOverlay');
             document.getElementById('cardImage').src = randomImage;
-            document.getElementById('textOverlay').textContent = randomText.text;
+            textOverlay.textContent = randomText.text;
+
+            // Handle winner link
+            if (randomText.won === 1) {
+                textOverlay.href = 'https://comoor.tw/';
+                textOverlay.target = '_blank';
+                textOverlay.classList.add('winner-link');
+                console.log(`🏆 Winner detected! Text will link to https://comoor.tw/`);
+            } else {
+                textOverlay.href = '#';
+                textOverlay.removeAttribute('target');
+                textOverlay.classList.remove('winner-link');
+                textOverlay.onclick = function(e) { e.preventDefault(); };
+            }
         }
 
         // Initialize the application
