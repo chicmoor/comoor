@@ -46,7 +46,7 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, calc(-50% - 30px));
             padding: 16px 24px;
             border-radius: 8px;
             font-size: 20px;
@@ -56,6 +56,7 @@
             backdrop-filter: blur(5px);
             text-decoration: none;
             cursor: default;
+            box-shadow: none;
         }
 
         .text-overlay.winner-link {
@@ -341,13 +342,22 @@
         // ADVANCED RATE LIMITING SYSTEM
         // ===========================================
 
+        // Check for dev mode parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const isDevMode = urlParams.get('dev') === 'true';
+
         // Rate limiting configuration
         const RATE_LIMIT_CONFIG = {
-            cooldownHours: 1,
-            cooldownMs: 1 * 60 * 60 * 1000, // 1 hour in milliseconds
+            cooldownHours: isDevMode ? 0.002778 : 1, // 10 seconds in dev mode, 1 hour in normal mode
+            cooldownMs: isDevMode ? 10 * 1000 : 1 * 60 * 60 * 1000, // 10 seconds or 1 hour in milliseconds
             gracePeriodMs: 5 * 60 * 1000, // 5 minutes grace period
             debugMode: true // Set to true for development
         };
+
+        // Log dev mode status
+        if (isDevMode) {
+            console.log('🔧 DEV MODE ACTIVE: Cooldown reduced to 10 seconds for testing');
+        }
 
         // Advanced Fingerprinting System
         class DeviceFingerprinter {
@@ -1255,6 +1265,7 @@
         const SHEET_ID = '1ecyT2EcO6shL61eaANXyIS4izuQPlL4eWwJt07GwHPE';
         const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
         const TEXT_PROBABILITY_SHEET_URL = CORS_PROXY + encodeURIComponent(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`);
+        const WINNING_URL_SHEET_URL = CORS_PROXY + encodeURIComponent(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=1049165968`);
         
         // Fallback texts with equal probabilities
         const fallbackTexts = [
@@ -1267,6 +1278,9 @@
 
         // Global texts array that will be populated from sheets or fallback
         let texts = [...fallbackTexts];
+
+        // Global winning URL (will be loaded from Google Sheets)
+        let winningUrl = 'https://comoor.tw/'; // fallback URL
 
         function getRandomItem(array) {
             return array[Math.floor(Math.random() * array.length)];
@@ -1384,7 +1398,89 @@
             localStorage.removeItem('card_texts_cache_time');
             localStorage.removeItem('card_probabilities_cache');
             localStorage.removeItem('card_probabilities_cache_time');
+            localStorage.removeItem('card_winning_url_cache');
+            localStorage.removeItem('card_winning_url_cache_time');
             console.log('🗑️  All caches cleared - will fetch fresh data from Google Sheets');
+        }
+
+        // Load winning URL from Google Sheets with caching
+        async function loadWinningUrl() {
+            const CACHE_KEY = 'card_winning_url_cache';
+            const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+            try {
+                // Check cache first
+                const cached = localStorage.getItem(CACHE_KEY);
+                const cacheTime = localStorage.getItem(CACHE_KEY + '_time');
+
+                if (cached && cacheTime) {
+                    const age = Date.now() - parseInt(cacheTime);
+                    if (age < CACHE_DURATION) {
+                        console.log('📚 Using cached winning URL (cached ' + Math.round(age/1000) + ' seconds ago)');
+                        winningUrl = isDevMode ? 'https://www.google.com' : cached;
+                        console.log(`🏆 Winning URL set to: ${winningUrl}`);
+                        return;
+                    } else {
+                        console.log('⏰ Winning URL cache expired, fetching fresh data...');
+                    }
+                } else {
+                    console.log('📥 No winning URL cache found, fetching fresh data...');
+                }
+
+                // Fetch from Google Sheets
+                console.log('🔗 Fetching winning URL from sheet (gid=1049165968)...');
+                const response = await fetch(WINNING_URL_SHEET_URL);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const csvData = await response.text();
+                console.log('📊 Raw winning URL CSV data:', csvData);
+
+                // Parse CSV - expecting a simple format with URL in first cell
+                const lines = csvData.trim().split('\n');
+                let extractedUrl = 'https://comoor.tw/'; // fallback
+
+                if (lines.length > 0) {
+                    const firstLine = lines[0];
+                    const parts = firstLine.split(',').map(part => part.replace(/^\"|\"$/g, '').trim());
+                    if (parts.length > 0 && parts[0] && parts[0].startsWith('http')) {
+                        extractedUrl = parts[0];
+                        console.log(`✅ Found winning URL in sheet: ${extractedUrl}`);
+                    } else {
+                        console.warn(`⚠️ Invalid URL format in sheet: "${parts[0]}", using fallback`);
+                    }
+                }
+
+                // Set the winning URL (override with dev URL if in dev mode)
+                const finalUrl = isDevMode ? 'https://www.google.com' : extractedUrl;
+                winningUrl = finalUrl;
+
+                // Cache the original URL from sheets (not the dev override)
+                localStorage.setItem(CACHE_KEY, extractedUrl);
+                localStorage.setItem(CACHE_KEY + '_time', Date.now().toString());
+
+                console.log(`🎉 Winning URL loaded successfully: ${winningUrl}`);
+                if (isDevMode) {
+                    console.log('🔧 DEV MODE: Overrode winning URL to https://www.google.com');
+                }
+
+            } catch (error) {
+                console.error('❌ Failed to load winning URL from sheet:', error.message);
+                console.log('📋 Error details:', {
+                    url: WINNING_URL_SHEET_URL,
+                    gid: '1049165968'
+                });
+                console.log('🔄 Using fallback winning URL');
+
+                // Set winning URL (with dev mode override if applicable)
+                winningUrl = isDevMode ? 'https://www.google.com' : 'https://comoor.tw/';
+
+                // Clear invalid cache
+                localStorage.removeItem(CACHE_KEY);
+                localStorage.removeItem(CACHE_KEY + '_time');
+            }
         }
 
         // Load texts with probabilities from Google Sheets with caching
@@ -1472,10 +1568,10 @@
 
             // Handle winner link
             if (randomText.won === 1) {
-                textOverlay.href = 'https://comoor.tw/';
+                textOverlay.href = winningUrl;
                 textOverlay.target = '_blank';
                 textOverlay.classList.add('winner-link');
-                console.log(`🏆 Winner detected! Text will link to https://comoor.tw/`);
+                console.log(`🏆 Winner detected! Text will link to ${winningUrl}`);
             } else {
                 textOverlay.href = '#';
                 textOverlay.removeAttribute('target');
@@ -1495,6 +1591,7 @@
             console.log('📚 Google Sheets Configuration:');
             console.log(`  Sheet ID: ${SHEET_ID}`);
             console.log(`  "金句" sheet (with probabilities): gid=0`);
+            console.log(`  Winning URL sheet: gid=1049165968`);
 
             try {
                 // Initialize UI managers
@@ -1510,14 +1607,16 @@
                 console.log('🔒 Initializing rate limiting system...');
                 const rateLimitResult = await rateLimitManager.initialize();
 
-                // Load texts with probabilities (during loading time)
-                console.log('📥 Loading texts from Google Sheets...');
+                // Load texts with probabilities and winning URL (during loading time)
+                console.log('📥 Loading texts and winning URL from Google Sheets...');
                 const loadTextsPromise = loadTextsWithProbabilities();
+                const loadWinningUrlPromise = loadWinningUrl();
 
                 // Wait for minimum loading time (3 seconds) and data loading
                 await Promise.all([
                     new Promise(resolve => setTimeout(resolve, 3000)), // 3 second minimum
-                    loadTextsPromise
+                    loadTextsPromise,
+                    loadWinningUrlPromise
                 ]);
 
                 // Hide loading spinner
@@ -1571,7 +1670,10 @@
 
                 // Fallback to basic functionality without rate limiting
                 console.log('🔄 Falling back to basic mode without rate limiting...');
-                await loadTextsWithProbabilities();
+                await Promise.all([
+                    loadTextsWithProbabilities(),
+                    loadWinningUrl()
+                ]);
                 initializeCard();
 
                 console.log('⚠️ Application running in fallback mode');
@@ -1758,46 +1860,7 @@ Debug mode: ${RATE_LIMIT_CONFIG.debugMode ? 'ON' : 'OFF'}
         // Initialize the card when page loads
         window.addEventListener('load', initializeApp);
 
-        // Modified click handler that respects rate limiting
-        document.querySelector('.image-container').addEventListener('click', async function(event) {
-            // Don't allow clicking if rate limited
-            if (rateLimitManager && rateLimitManager.isRateLimited) {
-                event.preventDefault();
-                console.log('🚫 Click blocked - user is rate limited');
-
-                // Show a brief feedback
-                const container = event.currentTarget;
-                const feedback = document.createElement('div');
-                feedback.style.cssText = `
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    background: rgba(255, 107, 107, 0.9);
-                    color: white;
-                    padding: 8px 16px;
-                    border-radius: 20px;
-                    font-size: 14px;
-                    z-index: 1001;
-                    pointer-events: none;
-                    animation: fadeIn 0.3s ease-out;
-                `;
-                feedback.textContent = '⏰ 請等待冷卻時間結束';
-
-                container.appendChild(feedback);
-
-                setTimeout(() => {
-                    feedback.remove();
-                }, 2000);
-
-                return;
-            }
-
-            // Allow normal click behavior for debugging or when not rate limited
-            if (RATE_LIMIT_CONFIG.debugMode || !rateLimitManager) {
-                initializeCard();
-            }
-        });
+        // Click handler removed - cards now only change on page refresh
     </script>
 </body>
 </html>
