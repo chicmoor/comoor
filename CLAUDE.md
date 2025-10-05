@@ -63,6 +63,21 @@ Advanced multi-factor fingerprinting system to identify unique devices:
 - Grace period: 5 minutes
 - LocalStorage + device fingerprint validation
 
+### Access Control
+
+#### Referrer Guard System
+Client-side access control to ensure users access pages through official channels:
+- **Allowed Referrer**: `https://comoor.pse.is/` (URL shortener)
+- **Implementation**: `js/referrer-guard.js` validates `document.referrer` on page load
+- **Behavior**: Shows error overlay if referrer is missing or doesn't match allowed domain
+- **Bypass Mode**: Use `?bypass=true` URL parameter for development/testing
+- **Files Protected**: Both `card.html` and `campaign.html`
+
+**Important Notes**:
+- Client-side validation only - not suitable for security purposes
+- Use for campaign flow control and tracking integrity
+- See `referrer-use-cases.md` for detailed documentation and use cases
+
 ### Key Features
 - Dynamic gradient backgrounds (5 predefined SVG patterns)
 - Text overlay system with weighted random selection
@@ -70,6 +85,7 @@ Advanced multi-factor fingerprinting system to identify unique devices:
 - Google Sheets CSV parsing with validation
 - Responsive design for mobile and desktop
 - Cross-browser compatibility
+- Referrer-based access control for campaign flow management
 
 ## Deployment
 
@@ -89,7 +105,8 @@ When deploying, ensure the following directory structure is maintained:
 ├── css/
 │   └── card.css
 └── js/
-    └── card.js
+    ├── card.js
+    └── referrer-guard.js
 ```
 
 All files must be served from the same origin to avoid CORS issues with the external CSS and JS references.
@@ -107,8 +124,10 @@ All files must be served from the same origin to avoid CORS issues with the exte
 
 ### Testing & Development
 - Use `?dev=true` URL parameter to enable dev mode with reduced cooldown (10 seconds vs 1 hour)
+- Use `?bypass=true` URL parameter to bypass referrer validation during testing
 - Debug mode enabled by default in `RATE_LIMIT_CONFIG` for console logging
 - Fingerprinting components logged to console for debugging
+- Referrer guard debug info shown in console when `debugMode: true`
 
 ### External Dependencies
 - Google Sheets API (via CORS proxy)
