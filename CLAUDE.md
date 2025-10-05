@@ -11,23 +11,65 @@ This is a static HTML project containing two main pages for a card/campaign syst
 
 ## Architecture
 
-### Static HTML Structure
-Both HTML files are self-contained with inline CSS and JavaScript:
+### File Structure
+The project follows a modular architecture:
 
-- **campaign.html**: Form-based page with responsive design and Chinese localization
-- **card.html**: Dynamic content page that fetches text from Google Sheets and displays random cards with gradient backgrounds
+- **campaign.html**: Form-based page with inline CSS and JavaScript for user registration
+- **card.html**: Main card display page (79 lines) with external resource references
+- **css/card.css**: Extracted stylesheet (570 lines) for card.html styling
+- **js/card.js**: Extracted JavaScript (1,878 lines) for card.html functionality
+
+### Page Details
+
+#### campaign.html
+- Self-contained with inline CSS and JavaScript
+- Responsive design with Chinese localization
+- User registration form
+
+#### card.html
+- Modular structure referencing external CSS and JS files
+- Dynamic card display with probability-weighted text selection
+- Google Sheets integration for content management
+- Winner contact form with modal interface
+- Device fingerprinting for rate limiting
 
 ### Data Integration
-- **Google Sheets Integration**: `card.html` uses Google Sheets API via CORS proxy to fetch dynamic text content
-- **Fallback System**: Built-in fallback texts in case Google Sheets is unavailable
+
+#### Google Sheets Integration
 - **Sheet ID**: `1ecyT2EcO6shL61eaANXyIS4izuQPlL4eWwJt07GwHPE`
 - **CORS Proxy**: Uses `api.allorigins.win` for cross-origin requests
+- **Text Selection**: Probability-weighted system using three columns (text, probability, won)
+- **Image Selection**: Equal probability for all available images
+- **Fallback System**: Built-in fallback texts with equal probability (0.2 each)
 
-### Key Components in card.html
+#### Google Apps Script Web App
+- Contact form submissions sent to Google Apps Script Web App
+- Collects winner information: account, phone, recipient name, address, and message
+- Form validation and submission status feedback
+
+### Rate Limiting & User Tracking
+
+#### Device Fingerprinting
+Advanced multi-factor fingerprinting system to identify unique devices:
+- Screen characteristics (resolution, color depth, pixel ratio)
+- Timezone and language preferences
+- Platform information (hardware concurrency, touch points)
+- Browser fingerprinting (canvas, WebGL, audio context)
+- Font detection
+
+#### Cooldown System
+- **Normal Mode**: 1-hour cooldown between card draws per device
+- **Dev Mode**: 10-second cooldown when `?dev=true` URL parameter is used
+- Grace period: 5 minutes
+- LocalStorage + device fingerprint validation
+
+### Key Features
 - Dynamic gradient backgrounds (5 predefined SVG patterns)
-- Text overlay system with random selection
-- Google Sheets CSV parsing with fallback mechanism
+- Text overlay system with weighted random selection
+- Contact form modal for winners
+- Google Sheets CSV parsing with validation
 - Responsive design for mobile and desktop
+- Cross-browser compatibility
 
 ## Deployment
 
@@ -38,9 +80,37 @@ The project is designed for GitHub Pages hosting. See `github-page-host.md` for 
 - File structure requirements
 - Security considerations
 
+### File Structure Requirements
+When deploying, ensure the following directory structure is maintained:
+```
+/
+├── campaign.html
+├── card.html
+├── css/
+│   └── card.css
+└── js/
+    └── card.js
+```
+
+All files must be served from the same origin to avoid CORS issues with the external CSS and JS references.
+
 ## Development Notes
 
-- All styling is inline CSS for easy deployment
+### General
 - No build process required - files can be served directly
 - Mobile-responsive design implemented
 - Cross-browser compatibility maintained through standard HTML/CSS/JS
+
+### File Organization
+- **campaign.html**: Self-contained with inline CSS/JS for easy deployment
+- **card.html**: Modular structure with external CSS/JS for better maintainability and browser caching
+
+### Testing & Development
+- Use `?dev=true` URL parameter to enable dev mode with reduced cooldown (10 seconds vs 1 hour)
+- Debug mode enabled by default in `RATE_LIMIT_CONFIG` for console logging
+- Fingerprinting components logged to console for debugging
+
+### External Dependencies
+- Google Sheets API (via CORS proxy)
+- Google Apps Script Web App (for contact form submissions)
+- CORS proxy: `api.allorigins.win`
