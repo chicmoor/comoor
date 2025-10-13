@@ -6,11 +6,14 @@
 /* Winner Link Styling (clickable text overlay when won=1) */
 .text-overlay.winner-link {
     cursor: pointer;
-    text-decoration: underline;
-    color: #0066cc;
 }
 
-.text-overlay.winner-link:hover {
+.text-overlay.winner-link .text-overlay-title {
+    color: #0066cc;
+    text-decoration: underline;
+}
+
+.text-overlay.winner-link:hover .text-overlay-title {
     color: #004499;
 }
 
