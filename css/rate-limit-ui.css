@@ -1,0 +1,257 @@
+/* ============================================
+   RATE LIMITING & LOADING UI STYLES
+   Shared across card.html and card-simple.html
+   ============================================ */
+
+/* Rate Limiting UI Styles */
+.rate-limit-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    color: #333;
+    text-align: center;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.rate-limit-icon {
+    font-size: 48px;
+    margin-bottom: 20px;
+    animation: pulse 2s infinite;
+}
+
+.rate-limit-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 16px;
+    color: #ff6b6b;
+}
+
+.rate-limit-message {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    max-width: 320px;
+}
+
+.countdown-container {
+    background: transparent;
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 0;
+    min-width: 200px;
+    border: none;
+    position: absolute;
+    top: 47%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.countdown-label {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.countdown-time {
+    font-size: 32px;
+    font-weight: bold;
+    color: #333;
+    font-family: 'Courier New', monospace;
+}
+
+.rate-limit-details {
+    font-size: 12px;
+    color: #666;
+    margin-top: 16px;
+    line-height: 1.4;
+}
+
+.bypass-warning {
+    background: rgba(255, 107, 107, 0.2);
+    border: 1px solid rgba(255, 107, 107, 0.4);
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 16px;
+    font-size: 14px;
+    color: #ffccc7;
+}
+
+.bypass-warning .warning-icon {
+    margin-right: 8px;
+}
+
+.debug-info {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    font-size: 10px;
+    color: #666;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    max-width: 200px;
+    word-break: break-all;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.rate-limit-overlay {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Card placeholder when rate limited */
+.card-placeholder {
+    filter: blur(3px) grayscale(70%);
+    opacity: 0.3;
+}
+
+@media (max-width: 768px) {
+    .rate-limit-title {
+        font-size: 20px;
+    }
+
+    .rate-limit-message {
+        font-size: 14px;
+        max-width: 280px;
+    }
+
+    .countdown-label {
+        font-size: 14px;
+    }
+
+    .countdown-time {
+        font-size: 28px;
+    }
+
+    .rate-limit-icon {
+        font-size: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .rate-limit-title {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+
+    .rate-limit-message {
+        font-size: 13px;
+        max-width: 250px;
+    }
+
+    .countdown-container {
+        padding: 16px 20px;
+        min-width: 160px;
+    }
+
+    .countdown-label {
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .countdown-time {
+        font-size: 24px;
+    }
+
+    .rate-limit-icon {
+        font-size: 36px;
+        margin-bottom: 16px;
+    }
+}
+
+/* Loading Spinner Styles */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #333;
+    text-align: center;
+    z-index: 1000;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #2196F3;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+.loading-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #2196F3;
+    margin-bottom: 8px;
+}
+
+.loading-subtitle {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.5;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .loading-title {
+        font-size: 18px;
+    }
+
+    .loading-subtitle {
+        font-size: 14px;
+    }
+
+    .loading-spinner {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .loading-title {
+        font-size: 16px;
+    }
+
+    .loading-subtitle {
+        font-size: 13px;
+    }
+
+    .loading-spinner {
+        width: 35px;
+        height: 35px;
+    }
+}

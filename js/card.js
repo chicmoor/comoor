@@ -742,9 +742,17 @@ class RateLimitUI {
             cardImage.classList.add('card-placeholder');
         }
 
+        // Randomly select cooldown image (yellow or red)
+        const cooldownImages = [
+            'assets/images/cooldown-yellow.jpg',
+            'assets/images/cooldown-red.jpg'
+        ];
+        const randomCooldownImage = cooldownImages[Math.floor(Math.random() * cooldownImages.length)];
+
         // Create overlay element
         this.overlayElement = document.createElement('div');
         this.overlayElement.className = 'rate-limit-overlay';
+        this.overlayElement.style.backgroundImage = `url('${randomCooldownImage}')`;
         this.overlayElement.innerHTML = this.generateOverlayHTML(rateLimitResult);
 
         container.appendChild(this.overlayElement);
@@ -755,27 +763,16 @@ class RateLimitUI {
         // Log rate limit event
         if (RATE_LIMIT_CONFIG.debugMode) {
             console.log('🚫 Rate limit overlay displayed:', rateLimitResult);
+            console.log('📷 Using cooldown image:', randomCooldownImage);
         }
     }
 
     // Generate HTML content for the overlay
     generateOverlayHTML(rateLimitResult) {
-        const message = '您今天已經抽過卡片了！<br>請稍後再來，每人每小時只能抽取一次。';
-        const icon = '⏰';
-
         let html = `
-            <div class="rate-limit-icon">${icon}</div>
-            <div class="rate-limit-title">抽卡冷卻中</div>
-            <div class="rate-limit-message">${message}</div>
-
             <div class="countdown-container">
                 <div class="countdown-label">下次可抽卡時間</div>
                 <div class="countdown-time" id="countdown-display">--:--</div>
-            </div>
-
-            <div class="rate-limit-details">
-                為了公平性，每位使用者每小時只能抽取一張卡片<br>
-                感謝您的理解與配合 🙏
             </div>
         `;
 
