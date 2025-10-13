@@ -919,13 +919,33 @@ const SHEET_ID = '1ecyT2EcO6shL61eaANXyIS4izuQPlL4eWwJt07GwHPE';
 const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 const TEXT_PROBABILITY_SHEET_URL = CORS_PROXY + encodeURIComponent(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`);
 
-// Fallback texts with equal probabilities (no won field needed)
+// Fallback texts with equal probabilities (includes title and description)
 const fallbackTexts = [
-    { text: "今天很開心", probability: 0.2 },
-    { text: "昨天很美好", probability: 0.2 },
-    { text: "很期待明天", probability: 0.2 },
-    { text: "這兩天都是好天氣", probability: 0.2 },
-    { text: "會是一個好年的！", probability: 0.2 }
+    {
+        title: "今天很開心",
+        description: "從清晨的第一道陽光，到傍晚的最後一抹餘暉，今天的每一刻都充滿了喜悅與感恩。",
+        probability: 0.2
+    },
+    {
+        title: "昨天很美好",
+        description: "回想昨天發生的美好事物，那些溫暖的笑容、真誠的對話，都成為了珍貴的回憶。",
+        probability: 0.2
+    },
+    {
+        title: "很期待明天",
+        description: "明天將會是充滿無限可能的一天，讓我們以期待的心情迎接新的開始。",
+        probability: 0.2
+    },
+    {
+        title: "這兩天都是好天氣",
+        description: "晴空萬里，微風拂面。這樣的好天氣讓人心情愉悅，適合出門走走，感受大自然的美好。",
+        probability: 0.2
+    },
+    {
+        title: "會是一個好年的！",
+        description: "新的一年充滿希望與機會，讓我們一起努力，創造更美好的未來！",
+        probability: 0.2
+    }
 ];
 
 // Global texts array that will be populated from sheets or fallback
@@ -951,17 +971,17 @@ function getWeightedRandomText(texts) {
     return texts[texts.length - 1];
 }
 
-// Validate if CSV data looks like text probability data (2 columns: text, probability)
+// Validate if CSV data looks like text probability data (3 columns: title, description, probability)
 function validateTextProbabilitySheet(csvData) {
     const lines = csvData.trim().split('\n');
-    if (lines.length === 0) return false;
+    if (lines.length <= 1) return false; // Need at least header + 1 data row
 
-    // Check first few lines for expected format
+    // Check first few data lines for expected format (skip header at index 0)
     let validLines = 0;
-    for (let i = 0; i < Math.min(3, lines.length); i++) {
+    for (let i = 1; i < Math.min(4, lines.length); i++) { // Check lines 1-3 (skip header)
         const parts = lines[i].split(',').map(part => part.replace(/^\"|\"$/g, '').trim());
-        if (parts.length >= 2) {
-            const probability = parseFloat(parts[1]);
+        if (parts.length >= 3) {
+            const probability = parseFloat(parts[2]); // Probability is in column 3 (index 2)
             if (!isNaN(probability) && probability > 0) {
                 validLines++;
             }
@@ -969,28 +989,29 @@ function validateTextProbabilitySheet(csvData) {
     }
 
     const isValid = validLines > 0;
-    console.log(`🔍 Text probability sheet validation: ${isValid ? '✅ VALID' : '❌ INVALID'} (${validLines}/${Math.min(3, lines.length)} lines have text with numeric probabilities)`);
+    console.log(`🔍 Text probability sheet validation: ${isValid ? '✅ VALID' : '❌ INVALID'} (${validLines}/${Math.min(3, lines.length - 1)} data lines have title, description, and numeric probabilities)`);
     return isValid;
 }
 
-// Parse CSV data for text probabilities (ignore won column)
+// Parse CSV data for text probabilities with title and description
 function parseTextProbabilityCSV(csvData) {
     const lines = csvData.trim().split('\n');
     const textsFromSheet = [];
 
-    console.log('📊 Raw CSV data from "金句" sheet (expecting text,probability format):');
+    console.log('📊 Raw CSV data from "金句" sheet (expecting title,description,probability format):');
     console.log(csvData);
-    console.log('📋 Expected format: "Text content,0.5" (text in column 1, probability number in column 2)');
+    console.log('📋 Expected format: "Title,Description,0.5" (title in column 1, description in column 2, probability number in column 3)');
 
     // Validate sheet format
     if (!validateTextProbabilitySheet(csvData)) {
-        console.warn('⚠️  Warning: CSV data does not appear to have probabilities in column 2!');
-        console.warn('Please update the sheet to have probability numbers in column 2');
+        console.warn('⚠️  Warning: CSV data does not appear to have probabilities in column 3!');
+        console.warn('Please update the sheet to have title, description, probability numbers in columns 1-3');
     }
 
-    console.log('📋 Processing CSV lines:');
+    console.log('📋 Processing CSV lines (skipping header row):');
 
-    for (let i = 0; i < lines.length; i++) {
+    // Skip header row (i=0), start from data row (i=1)
+    for (let i = 1; i < lines.length; i++) {
         const line = lines[i];
         console.log(`Line ${i + 1}: "${line}"`);
 
@@ -998,28 +1019,31 @@ function parseTextProbabilityCSV(csvData) {
         const parts = line.split(',').map(part => part.replace(/^\"|\"$/g, '').trim());
         console.log(`  Raw parts: [${parts.map(p => `"${p}"`).join(', ')}]`);
 
-        if (parts.length >= 2) {
-            const text = parts[0];
-            const secondColumn = parts[1];
-            const probability = parseFloat(secondColumn);
+        if (parts.length >= 3) {
+            const title = parts[0];
+            const description = parts[1];
+            const thirdColumn = parts[2];
+            const probability = parseFloat(thirdColumn);
 
-            console.log(`  → Text: "${text}"`);
-            console.log(`  → Second column: "${secondColumn}"`);
+            console.log(`  → Title: "${title}"`);
+            console.log(`  → Description: "${description.substring(0, 50)}${description.length > 50 ? '...' : ''}"`);
+            console.log(`  → Third column (probability): "${thirdColumn}"`);
             console.log(`  → Parsed probability: ${probability} (valid: ${!isNaN(probability)})`);
 
-            if (text && !isNaN(probability) && probability > 0) {
+            if (title && !isNaN(probability) && probability > 0) {
                 textsFromSheet.push({
-                    text: text,
+                    title: title,
+                    description: description || '', // Empty string if description is missing
                     probability: probability
                 });
-                console.log(`  ✅ Added: "${text}" = ${probability}`);
+                console.log(`  ✅ Added: "${title}" (${description.length} chars description) = ${probability}`);
             } else {
-                console.log(`  ❌ Skipped: ${!text ? 'empty text' : isNaN(probability) ? 'second column is not a valid number' : 'probability <= 0'}`);
+                console.log(`  ❌ Skipped: ${!title ? 'empty title' : isNaN(probability) ? 'third column is not a valid number' : 'probability <= 0'}`);
             }
         } else if (parts.length === 1 && parts[0]) {
             // Handle single column case
-            const text = parts[0];
-            console.log(`  → Single column text: "${text}"`);
+            const title = parts[0];
+            console.log(`  → Single column title: "${title}"`);
             console.log(`  ❌ Skipped: no probability column found`);
         } else {
             console.log(`  ❌ Skipped: insufficient data`);
@@ -1111,7 +1135,8 @@ function logTextSummary() {
     console.log('✨ Final text probabilities:');
     texts.forEach(textObj => {
         const percentage = ((textObj.probability / totalProbability) * 100).toFixed(1);
-        console.log(`  📝 "${textObj.text}": ${textObj.probability} (${percentage}%)`);
+        const descPreview = textObj.description ? ` (${textObj.description.substring(0, 30)}...)` : '';
+        console.log(`  📝 "${textObj.title}"${descPreview}: ${textObj.probability} (${percentage}%)`);
     });
     console.log(`📊 Total probability weight: ${totalProbability}`);
 }
@@ -1122,11 +1147,22 @@ function initializeCard() {
     const randomText = getWeightedRandomText(texts);
 
     console.log(`🖼️  Selected image: ${randomImage} (random selection)`);
-    console.log(`📝 Selected text: "${randomText.text}" (probability: ${randomText.probability})`);
+    console.log(`📝 Selected text: "${randomText.title}" (probability: ${randomText.probability})`);
+    console.log(`📖 Description: "${randomText.description.substring(0, 50)}${randomText.description.length > 50 ? '...' : ''}"`);
 
-    const textOverlay = document.getElementById('textOverlay');
+    // Set card image
     document.getElementById('cardImage').src = randomImage;
-    textOverlay.textContent = randomText.text;
+
+    // Set title and description
+    const titleElement = document.querySelector('.text-overlay-title');
+    const descriptionElement = document.querySelector('.text-overlay-description');
+
+    if (titleElement && descriptionElement) {
+        titleElement.textContent = randomText.title;
+        descriptionElement.textContent = randomText.description;
+    } else {
+        console.error('❌ Text overlay elements not found in DOM');
+    }
 }
 
 // Global rate limiting system (no contact form manager)
@@ -1227,10 +1263,18 @@ async function initializeApp() {
 function initializePlaceholderCard() {
     // Show a generic placeholder image and text
     const placeholderImage = images[0]; // Use first image as placeholder
-    const placeholderText = "請稍後再來抽卡";
+    const placeholderTitle = "請稍後再來抽卡";
+    const placeholderDescription = "您今天已經抽過卡片了，請稍後再來。感謝您的耐心等候！";
 
     document.getElementById('cardImage').src = placeholderImage;
-    document.getElementById('textOverlay').textContent = placeholderText;
+
+    const titleElement = document.querySelector('.text-overlay-title');
+    const descriptionElement = document.querySelector('.text-overlay-description');
+
+    if (titleElement && descriptionElement) {
+        titleElement.textContent = placeholderTitle;
+        descriptionElement.textContent = placeholderDescription;
+    }
 }
 
 // ===========================================

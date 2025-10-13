@@ -35,36 +35,6 @@ body {
     object-fit: contain;
 }
 
-/* Text Overlay - Title and Description on Image */
-.text-overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, calc(-50% - 30px));
-    padding: 20px 32px;
-    text-align: center;
-    cursor: default;
-    max-width: 85%;
-}
-
-.text-overlay-title {
-    font-size: 24px;
-    font-weight: bold;
-    color: #333;
-    margin: 0 0 12px 0;
-    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8);
-}
-
-.text-overlay-description {
-    font-size: 16px;
-    line-height: 1.6;
-    color: #444;
-    margin: 0;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
-}
-
 @media (max-width: 768px) {
     .container {
         padding: 24px 15px;
@@ -73,39 +43,8 @@ body {
     .card-image {
         max-width: 100%;
     }
-
-    .text-overlay {
-        padding: 16px 24px;
-        max-width: 90%;
-    }
-
-    .text-overlay-title {
-        font-size: 20px;
-        margin-bottom: 10px;
-    }
-
-    .text-overlay-description {
-        font-size: 15px;
-        line-height: 1.5;
-    }
 }
 
-@media (max-width: 480px) {
-    .text-overlay {
-        padding: 12px 20px;
-        max-width: 92%;
-    }
-
-    .text-overlay-title {
-        font-size: 18px;
-        margin-bottom: 8px;
-    }
-
-    .text-overlay-description {
-        font-size: 14px;
-        line-height: 1.5;
-    }
-}
-
+/* Text Overlay Styles moved to /css/text-overlay.css (shared) */
 /* Rate Limiting & Loading UI Styles moved to /css/rate-limit-ui.css (shared) */
 /* Contact Form Styles moved to /css/contact-form.css (UC-06) */
