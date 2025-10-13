@@ -74,10 +74,17 @@ class ContactFormManager {
         // Reset form state
         this.resetForm();
 
+        // Set prize title from appConfig (loaded in card.js)
+        const prizeTitleInput = document.getElementById('prizeTitle');
+        if (prizeTitleInput && typeof appConfig !== 'undefined') {
+            prizeTitleInput.value = appConfig.prizeTitle || '精美禮品';
+            console.log(`🎁 Prize title set to: "${prizeTitleInput.value}"`);
+        }
+
         // Show overlay
         this.overlay.classList.add('show');
 
-        // Focus on first input
+        // Focus on first editable input (account, not prize title)
         setTimeout(() => {
             const accountInput = document.getElementById('account');
             if (accountInput) accountInput.focus();
@@ -251,6 +258,7 @@ class ContactFormManager {
     // Get form data as object
     getFormData() {
         return {
+            prizeTitle: document.getElementById('prizeTitle').value.trim(),
             account: document.getElementById('account').value.trim(),
             phone: document.getElementById('phone').value.trim(),
             recipientName: document.getElementById('recipientName').value.trim(),
@@ -385,6 +393,7 @@ class ContactFormManager {
             // Prepare the row data with new fields
             const rowData = [
                 new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }),
+                formData.prizeTitle,
                 formData.account,
                 formData.phone,
                 formData.recipientName,
@@ -393,8 +402,8 @@ class ContactFormManager {
                 formData.userAgent
             ];
 
-            // Use the correct sheet name in the range (7 columns: timestamp, account, phone, recipientName, address, message, userAgent)
-            const range = `${sheetName}!A:G`;
+            // Use the correct sheet name in the range (8 columns: timestamp, prizeTitle, account, phone, recipientName, address, message, userAgent)
+            const range = `${sheetName}!A:H`;
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}:append?valueInputOption=RAW&key=${apiKey}`;
 
             console.log(`📊 Submitting to range: ${range}`);
@@ -439,6 +448,7 @@ class ContactFormManager {
             console.log('📋 Contact Form Submission (Manual Collection Required):');
             console.log('='.repeat(60));
             console.log(`時間: ${new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}`);
+            console.log(`獎品名稱: ${formData.prizeTitle}`);
             console.log(`官網帳號: ${formData.account}`);
             console.log(`連絡電話: ${formData.phone}`);
             console.log(`收件姓名: ${formData.recipientName}`);

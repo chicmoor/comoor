@@ -43,9 +43,17 @@
 https://docs.google.com/spreadsheets/d/1ecyT2EcO6shL61eaANXyIS4izuQPlL4eWwJt07GwHPE
 ```
 
-**主要工作表**：「金句」（gid=0）
+**工作表列表**：
+1. **「金句」（gid=0）** - 卡片文字內容與機率
+2. **「配置」（gid=2058356234）** - 系統配置參數
 
-### 欄位定義
+---
+
+### 工作表 1：金句（gid=0）
+
+卡片文字內容與機率設定
+
+#### 欄位定義
 
 | 欄位 | 名稱 | 類型 | 範例 | 說明 |
 |------|------|------|------|------|
@@ -77,9 +85,68 @@ https://docs.google.com/spreadsheets/d/1ecyT2EcO6shL61eaANXyIS4izuQPlL4eWwJt07Gw
 └─────────────────────────────────┴──────────────┴─────┘
 ```
 
+---
+
+### 工作表 2：配置（gid=2058356234）
+
+系統配置參數設定
+
+#### 欄位定義
+
+| 欄位 | 名稱 | 類型 | 範例 | 說明 |
+|------|------|------|------|------|
+| A | 冷卻時間（分） | 數值 | 60 | 抽卡冷卻時間（分鐘） |
+| B | 獎品名稱 | 文字 | 精美禮品 | 中獎時顯示的獎品名稱 |
+
+#### 範例資料
+
+```csv
+冷卻時間（分）,獎品名稱
+60,精美禮品
+```
+
+#### 試算表截圖（示意）
+
+```
+┌─────────────────┬──────────┐
+│        A        │    B     │
+├─────────────────┼──────────┤
+│ 冷卻時間（分）  │ 獎品名稱 │
+│ 60              │ 精美禮品 │
+└─────────────────┴──────────┘
+```
+
+**重要提示**：
+- ⚠️ **此表僅包含一列資料**（除了標題行）
+- ⚠️ **修改後系統會在 10 分鐘內生效**（快取機制）
+- ⚠️ **card-simple.html 僅使用冷卻時間**，不使用獎品名稱
+- ⚠️ **card.html 同時使用兩個欄位**
+
+**欄位說明**：
+
+**冷卻時間（分）**：
+- 單位：分鐘
+- 範例：60（代表 1 小時），30（代表 30 分鐘）
+- 應用頁面：`card.html`、`card-simple.html`
+- 作用：控制使用者抽卡後需要等待多久才能再次抽卡
+- 預設值：60 分鐘
+- 建議範圍：5-1440 分鐘（5 分鐘至 1 天）
+
+**獎品名稱**：
+- 類型：文字
+- 範例：「精美禮品」、「限量周邊」、「專屬優惠券」
+- 應用頁面：僅 `card.html`（在中獎聯絡表單中顯示）
+- 作用：告知中獎者贏得的獎品名稱
+- 預設值：「精美禮品」
+- 建議：簡短明確，5-15 字
+
+---
+
 ## 📝 操作流程
 
-### 新增文字
+### 工作表 1：金句操作
+
+#### 新增文字
 
 1. **開啟試算表**
    - 訪問試算表連結
@@ -138,9 +205,64 @@ https://docs.google.com/spreadsheets/d/1ecyT2EcO6shL61eaANXyIS4izuQPlL4eWwJt07Gw
 3. **確認**
    - 刪除後立即生效（下次快取更新）
 
+---
+
+### 工作表 2：配置操作
+
+#### 修改冷卻時間
+
+1. **切換至配置工作表**
+   - 點擊試算表底部的「配置」標籤（gid=2058356234）
+
+2. **修改數值**
+   - 找到第 2 列（資料列，非標題列）
+   - 修改欄位 A 的數值
+   - 例如：從 60 改為 30（30 分鐘冷卻）
+
+3. **自動儲存**
+   - Google 試算表自動儲存
+
+4. **等待生效**
+   - 系統會在 10 分鐘內自動載入新設定
+   - 或手動清除快取立即生效
+
+**常用冷卻時間範例**：
+- 30 分鐘：較寬鬆，適合測試或活動期間
+- 60 分鐘（預設）：標準設定
+- 120 分鐘（2 小時）：較嚴格的限制
+- 1440 分鐘（1 天）：每日一次
+
+#### 修改獎品名稱
+
+1. **切換至配置工作表**
+   - 點擊試算表底部的「配置」標籤
+
+2. **修改文字**
+   - 找到第 2 列
+   - 修改欄位 B 的文字
+   - 例如：從「精美禮品」改為「限量周邊商品」
+
+3. **自動儲存並生效**
+   - Google 試算表自動儲存
+   - 等待 10 分鐘或清除快取
+
+4. **驗證**
+   - 訪問 `card.html`
+   - 抽中獎品後，查看聯絡表單中的獎品名稱欄位
+   - 應顯示更新後的獎品名稱
+
+**注意事項**：
+- ⚠️ 獎品名稱僅影響 `card.html` 的中獎聯絡表單
+- ⚠️ `card-simple.html` 不會使用此欄位
+- ⚠️ 建議保持簡短清晰（5-15 字）
+
+---
+
 ## ⚙️ 技術實作
 
-### CSV 匯出 URL
+### 工作表 1：金句技術實作
+
+#### CSV 匯出 URL
 
 系統使用以下 URL 取得 CSV 格式：
 ```
@@ -151,7 +273,7 @@ https://docs.google.com/spreadsheets/d/1ecyT2EcO6shL61eaANXyIS4izuQPlL4eWwJt07Gw
 - `format=csv`：匯出為 CSV 格式
 - `gid=0`：工作表 ID（金句工作表）
 
-### CORS 代理
+#### CORS 代理
 
 由於瀏覽器 CORS 限制，使用代理：
 ```
@@ -219,6 +341,101 @@ const fallbackTexts = [
     { text: "會是一個好年的！", probability: 0.2, won: 0 }
 ];
 ```
+
+---
+
+### 工作表 2：配置技術實作
+
+#### CSV 匯出 URL
+
+系統使用以下 URL 取得 CSV 格式：
+```
+https://docs.google.com/spreadsheets/d/1ecyT2EcO6shL61eaANXyIS4izuQPlL4eWwJt07GwHPE/export?format=csv&gid=2058356234
+```
+
+**參數說明**：
+- `format=csv`：匯出為 CSV 格式
+- `gid=2058356234`：工作表 ID（配置工作表）
+
+#### CORS 代理
+
+同樣使用 `api.allorigins.win` 代理
+
+#### 快取機制
+
+```javascript
+const CONFIG_CACHE_KEY = 'app_config_cache';
+const CONFIG_CACHE_DURATION = 10 * 60 * 1000; // 10 分鐘
+
+// 載入配置
+async function loadConfigFromSheet() {
+    // 檢查快取
+    const cached = localStorage.getItem(CONFIG_CACHE_KEY);
+    const cacheTime = localStorage.getItem(CONFIG_CACHE_KEY + '_time');
+
+    if (cached && cacheTime) {
+        const age = Date.now() - parseInt(cacheTime);
+        if (age < CONFIG_CACHE_DURATION) {
+            // 使用快取
+            const config = JSON.parse(cached);
+            appConfig.cooldownMinutes = config.cooldownMinutes;
+            appConfig.prizeTitle = config.prizeTitle || '精美禮品';
+            return;
+        }
+    }
+
+    // 快取過期，重新載入
+    const response = await fetch(CONFIG_SHEET_URL);
+    const csvData = await response.text();
+    const config = parseConfigCSV(csvData);
+
+    // 更新全局配置
+    appConfig.cooldownMinutes = config.cooldownMinutes;
+    appConfig.prizeTitle = config.prizeTitle;
+
+    // 儲存至快取
+    localStorage.setItem(CONFIG_CACHE_KEY, JSON.stringify(config));
+    localStorage.setItem(CONFIG_CACHE_KEY + '_time', Date.now().toString());
+}
+```
+
+#### CSV 解析
+
+```javascript
+function parseConfigCSV(csvData) {
+    const lines = csvData.trim().split('\n');
+
+    // 略過標題列，讀取第二列（資料列）
+    if (lines.length >= 2) {
+        const dataLine = lines[1];
+        const parts = dataLine.split(',').map(p => p.trim().replace(/^"|"$/g, ''));
+
+        return {
+            cooldownMinutes: parseInt(parts[0]) || 60,
+            prizeTitle: parts[1] || '精美禮品'
+        };
+    }
+
+    // 降級至預設值
+    return {
+        cooldownMinutes: 60,
+        prizeTitle: '精美禮品'
+    };
+}
+```
+
+#### 降級策略
+
+若配置表載入失敗，使用預設值：
+
+```javascript
+const appConfig = {
+    cooldownMinutes: 60,      // 預設 60 分鐘
+    prizeTitle: '精美禮品'    // 預設獎品名稱
+};
+```
+
+---
 
 ## 🔧 管理工具
 
@@ -420,4 +637,5 @@ location.reload()
 
 ---
 
-**最後更新**：2025-10-05
+**最後更新**：2025-10-13
+**更新內容**：新增配置工作表（gid=2058356234）支援動態冷卻時間與獎品名稱

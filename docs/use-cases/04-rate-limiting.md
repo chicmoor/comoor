@@ -238,23 +238,51 @@ overlayElement.style.backgroundImage = `url('${randomCooldownImage}')`;
 
 ### 冷卻時間設定
 
+**動態配置**：冷卻時間從 Google Sheets 配置表（gid=2058356234）載入
+
+配置表結構：
+| 冷卻時間（分） | 獎品名稱 |
+|---------------|---------|
+| 60            | 精美禮品 |
+
+系統會在頁面載入時自動讀取冷卻時間設定：
+
 ```javascript
+// 從 Google Sheets 載入配置
+const appConfig = {
+    cooldownMinutes: 60,     // 預設：60分鐘（從配置表載入）
+    prizeTitle: '精美禮品'   // 預設獎品名稱（從配置表載入）
+};
+
+// 應用至速率限制配置
 const RATE_LIMIT_CONFIG = {
-    cooldownHours: isDevMode ? 0.002778 : 1,     // 開發：10秒，正常：1小時
-    cooldownMs: isDevMode ? 10000 : 3600000,      // 毫秒表示
+    cooldownHours: isDevMode ? 0.002778 : appConfig.cooldownMinutes / 60,
+    cooldownMs: isDevMode ? 10000 : appConfig.cooldownMinutes * 60 * 1000,
     gracePeriodMs: 5 * 60 * 1000,                // 5分鐘寬限期
     debugMode: true                               // 除錯模式
 };
 ```
 
+**配置快取**：
+- 配置資料會快取於 LocalStorage 中
+- 快取有效期：10 分鐘
+- 過期後自動重新載入
+
+**更新冷卻時間**：
+1. 編輯 Google Sheets 配置表（gid=2058356234）
+2. 修改「冷卻時間（分）」欄位的值
+3. 使用者下次載入頁面時自動套用新設定
+4. 或等待 10 分鐘快取過期後自動更新
+
 ### Dev 模式
 在 URL 加上 `?dev=true` 參數：
 ```
 card.html?dev=true
+card-simple.html?dev=true
 ```
 
 **效果**：
-- ✅ 冷卻時間從 1 小時降為 10 秒
+- ✅ 冷卻時間從配置值降為 10 秒（覆蓋 Google Sheets 設定）
 - ✅ 控制台顯示額外除錯訊息
 - ✅ 便於測試速率限制功能
 
@@ -447,4 +475,4 @@ window.CardRateLimit.admin.testFingerprint()
 ---
 
 **最後更新**：2025-10-13
-**更新內容**：新增隨機冷卻圖片顯示功能
+**更新內容**：新增動態冷卻時間配置（從 Google Sheets gid=2058356234 載入）
