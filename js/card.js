@@ -926,8 +926,8 @@ const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 const TEXT_PROBABILITY_SHEET_URL = CORS_PROXY + encodeURIComponent(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`);
 const CONFIG_SHEET_URL = CORS_PROXY + encodeURIComponent(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=2058356234`);
 
-// Global config variables from Google Sheets
-let appConfig = {
+// Global config variables from Google Sheets (attached to window for cross-script access)
+window.appConfig = {
     cooldownMinutes: 60,  // Default: 60 minutes
     prizeTitle: '精美禮品'  // Default prize title
 };
@@ -1108,8 +1108,8 @@ async function loadConfigFromSheet() {
             if (age < CACHE_DURATION) {
                 console.log('⚙️  Using cached config (cached ' + Math.round(age/1000) + ' seconds ago)');
                 const cachedConfig = JSON.parse(cached);
-                appConfig = cachedConfig;
-                console.log('✅ Config loaded from cache:', appConfig);
+                window.appConfig = cachedConfig;
+                console.log('✅ Config loaded from cache:', window.appConfig);
                 return;
             } else {
                 console.log('⏰ Config cache expired, fetching fresh data...');
@@ -1144,17 +1144,17 @@ async function loadConfigFromSheet() {
                 const prizeTitle = parts[1];
 
                 if (!isNaN(cooldownMinutes) && cooldownMinutes > 0) {
-                    appConfig.cooldownMinutes = cooldownMinutes;
+                    window.appConfig.cooldownMinutes = cooldownMinutes;
                     console.log(`⏱️  Cooldown time set to: ${cooldownMinutes} minutes`);
                 } else {
-                    console.warn(`⚠️  Invalid cooldown value "${parts[0]}", using default: ${appConfig.cooldownMinutes} minutes`);
+                    console.warn(`⚠️  Invalid cooldown value "${parts[0]}", using default: ${window.appConfig.cooldownMinutes} minutes`);
                 }
 
                 if (prizeTitle) {
-                    appConfig.prizeTitle = prizeTitle;
+                    window.appConfig.prizeTitle = prizeTitle;
                     console.log(`🎁 Prize title set to: "${prizeTitle}"`);
                 } else {
-                    console.warn(`⚠️  Prize title empty, using default: "${appConfig.prizeTitle}"`);
+                    console.warn(`⚠️  Prize title empty, using default: "${window.appConfig.prizeTitle}"`);
                 }
             } else {
                 throw new Error('Config sheet has insufficient columns (expected 2: cooldown_minutes, prize_title)');
@@ -1164,11 +1164,11 @@ async function loadConfigFromSheet() {
         }
 
         // Update cache
-        localStorage.setItem(CACHE_KEY, JSON.stringify(appConfig));
+        localStorage.setItem(CACHE_KEY, JSON.stringify(window.appConfig));
         localStorage.setItem(CACHE_KEY + '_time', Date.now().toString());
 
         console.log('🎉 Successfully loaded config from Google Sheets!');
-        console.log('✨ Final config:', appConfig);
+        console.log('✨ Final config:', window.appConfig);
 
     } catch (error) {
         console.error('❌ Failed to load config from sheet:', error.message);
@@ -1177,7 +1177,7 @@ async function loadConfigFromSheet() {
             gid: '2058356234'
         });
         console.log('🔄 Using default config values');
-        console.log('⚠️  Current config:', appConfig);
+        console.log('⚠️  Current config:', window.appConfig);
 
         // Clear invalid cache
         localStorage.removeItem(CACHE_KEY);
@@ -1327,7 +1327,7 @@ async function initializeApp() {
 
         // Update RATE_LIMIT_CONFIG with dynamic cooldown
         if (!isDevMode) {
-            const cooldownMinutes = appConfig.cooldownMinutes;
+            const cooldownMinutes = window.appConfig.cooldownMinutes;
             RATE_LIMIT_CONFIG.cooldownHours = cooldownMinutes / 60;
             RATE_LIMIT_CONFIG.cooldownMs = cooldownMinutes * 60 * 1000;
             console.log(`⏱️  Rate limit config updated: ${cooldownMinutes} minutes (${RATE_LIMIT_CONFIG.cooldownHours} hours)`);
