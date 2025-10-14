@@ -43,9 +43,21 @@ The project follows a modular architecture:
 - **Fallback System**: Built-in fallback texts with equal probability (0.2 each)
 
 #### Google Apps Script Web App
+- **Web App URL**: `https://script.google.com/macros/s/AKfycbxJ04YQhMx3KzzUAohIOMdcSOd5c1e280FAXLcYSd9J5JzZ-DWDr5_9eBZivRdpFN3xaw/exec`
+- **Target Sheet GID**: `2018488710` (winner contact collection sheet)
 - Contact form submissions sent to Google Apps Script Web App
-- Collects winner information: account, phone, recipient name, address, and message
+- Collects winner information: prize title, account, phone, recipient name, address, message, and user agent
 - Form validation and submission status feedback
+- **Script Location**: `external/scripts/AppScripts.js` (reference implementation)
+- **Data Fields Collected**:
+  - `prizeTitle`: Prize name from config sheet (gid=2058356234)
+  - `account`: User's website account
+  - `phone`: Contact phone number
+  - `recipientName`: Recipient name for prize delivery
+  - `address`: Delivery address
+  - `message`: User's message to Comoor
+  - `timestamp`: Submission timestamp (Asia/Taipei timezone)
+  - `userAgent`: Browser user agent string
 
 ### Rate Limiting & User Tracking
 
@@ -114,3 +126,62 @@ All files must be served from the same origin to avoid CORS issues with the exte
 - Google Sheets API (via CORS proxy)
 - Google Apps Script Web App (for contact form submissions)
 - CORS proxy: `api.allorigins.win`
+
+## Google Apps Script Implementation
+
+### Overview
+The Google Apps Script Web App (`external/scripts/AppScripts.js`) handles winner contact form submissions and writes data to the Google Spreadsheet.
+
+### Configuration
+- **Target Spreadsheet**: Bound to the active spreadsheet
+- **Target Sheet GID**: `2018488710` (dynamically located by sheet ID)
+- **Deployment**: Must be deployed as Web App with "Execute as: Me" and "Who has access: Anyone"
+
+### Implementation Details
+
+The `doPost(e)` function:
+1. **Parses Incoming Data**: Accepts data from either FormData (`e.parameter.data`) or JSON (`e.postData.contents`)
+2. **Locates Target Sheet**: Finds the sheet with GID `2018488710` in the active spreadsheet
+3. **Prepares Row Data**: Formats data in the correct column order:
+   - Column A: Timestamp (Asia/Taipei timezone)
+   - Column B: Prize Title
+   - Column C: Account
+   - Column D: Phone
+   - Column E: Recipient Name
+   - Column F: Address
+   - Column G: Message
+   - Column H: User Agent
+4. **Appends to Sheet**: Uses `appendRow()` to add the data
+5. **Returns Response**: JSON response with success/error status
+
+### Data Flow
+```
+Frontend (contact-collection.js)
+  → FormData with JSON payload
+  → Google Apps Script Web App
+  → Sheet with GID 2018488710
+```
+
+### Error Handling
+- Returns JSON response with `success: true/false`
+- Includes error message in `error` field when submission fails
+- Frontend displays error messages and keeps form open for retry
+
+### Deployment Instructions
+1. Open the bound Google Apps Script project for the spreadsheet
+2. Copy code from `external/scripts/AppScripts.js`
+3. Replace the existing `doPost` function
+4. Save the script
+5. Deploy as Web App:
+   - Click "Deploy" → "New deployment"
+   - Type: "Web app"
+   - Execute as: "Me"
+   - Who has access: "Anyone"
+   - Click "Deploy"
+6. Copy the Web App URL and update `contact-collection.js` if needed (currently: `https://script.google.com/macros/s/AKfycbxJ04YQhMx3KzzUAohIOMdcSOd5c1e280FAXLcYSd9J5JzZ-DWDr5_9eBZivRdpFN3xaw/exec`)
+
+### Important Notes
+- The script uses `SpreadsheetApp.getActiveSpreadsheet()` so it must be bound to the correct spreadsheet
+- Sheet is located by GID (`2018488710`) not by name, making it resilient to sheet renaming
+- Timestamps are formatted in Taiwan timezone (`zh-TW`, `Asia/Taipei`)
+- All fields include fallback to empty string if data is missing
