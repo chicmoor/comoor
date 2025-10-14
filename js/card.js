@@ -1129,27 +1129,37 @@ async function loadConfigFromSheet() {
         const csvData = await response.text();
         console.log('📊 Raw config CSV data:', csvData);
 
-        // Parse CSV (expecting: header row + 1 data row with cooldown_minutes, prize_title)
+        // Parse CSV (horizontal format: Row 1 = cooldown label,value; Row 2 = prize label,value)
         const lines = csvData.trim().split('\n');
 
         if (lines.length >= 2) {
-            // Skip header (line 0), parse data (line 1)
-            const dataLine = lines[1];
-            const parts = dataLine.split(',').map(part => part.replace(/^\"|\"$/g, '').trim());
+            // Parse row 1: 冷卻時間（分）,30
+            const cooldownLine = lines[0];
+            const cooldownParts = cooldownLine.split(',').map(part => part.replace(/^\"|\"$/g, '').trim());
 
-            console.log('📋 Config data parts:', parts);
+            // Parse row 2: 獎品名稱,測試的獎品－包子
+            const prizeLine = lines[1];
+            const prizeParts = prizeLine.split(',').map(part => part.replace(/^\"|\"$/g, '').trim());
 
-            if (parts.length >= 2) {
-                const cooldownMinutes = parseFloat(parts[0]);
-                const prizeTitle = parts[1];
+            console.log('📋 Row 1 (cooldown):', cooldownParts);
+            console.log('📋 Row 2 (prize):', prizeParts);
 
+            // Extract cooldown value from column B (index 1) of row 1
+            if (cooldownParts.length >= 2) {
+                const cooldownMinutes = parseFloat(cooldownParts[1]);
                 if (!isNaN(cooldownMinutes) && cooldownMinutes > 0) {
                     window.appConfig.cooldownMinutes = cooldownMinutes;
                     console.log(`⏱️  Cooldown time set to: ${cooldownMinutes} minutes`);
                 } else {
-                    console.warn(`⚠️  Invalid cooldown value "${parts[0]}", using default: ${window.appConfig.cooldownMinutes} minutes`);
+                    console.warn(`⚠️  Invalid cooldown value "${cooldownParts[1]}", using default: ${window.appConfig.cooldownMinutes} minutes`);
                 }
+            } else {
+                console.warn('⚠️  Cooldown row has insufficient columns, using default');
+            }
 
+            // Extract prize title from column B (index 1) of row 2
+            if (prizeParts.length >= 2) {
+                const prizeTitle = prizeParts[1];
                 if (prizeTitle) {
                     window.appConfig.prizeTitle = prizeTitle;
                     console.log(`🎁 Prize title set to: "${prizeTitle}"`);
@@ -1157,10 +1167,10 @@ async function loadConfigFromSheet() {
                     console.warn(`⚠️  Prize title empty, using default: "${window.appConfig.prizeTitle}"`);
                 }
             } else {
-                throw new Error('Config sheet has insufficient columns (expected 2: cooldown_minutes, prize_title)');
+                console.warn('⚠️  Prize row has insufficient columns, using default');
             }
         } else {
-            throw new Error('Config sheet has insufficient rows (expected header + data row)');
+            throw new Error('Config sheet has insufficient rows (expected 2 rows: cooldown + prize)');
         }
 
         // Update cache
