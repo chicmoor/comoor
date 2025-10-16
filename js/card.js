@@ -1321,9 +1321,12 @@ async function initializeApp() {
         console.log('⏳ Showing loading spinner...');
         loadingUI.showLoadingOverlay();
 
-        // Load config from sheet FIRST (before rate limit initialization)
-        console.log('⚙️  Loading config from Google Sheets...');
-        await loadConfigFromSheet();
+        // Load config and texts in parallel from Google Sheets (performance optimization)
+        console.log('⚙️  Loading data from Google Sheets in parallel...');
+        await Promise.all([
+            loadConfigFromSheet(),
+            loadTextsWithProbabilities()
+        ]);
 
         // Update RATE_LIMIT_CONFIG with dynamic cooldown
         if (!isDevMode) {
@@ -1343,15 +1346,8 @@ async function initializeApp() {
         console.log('🔒 Initializing rate limiting system...');
         const rateLimitResult = await rateLimitManager.initialize();
 
-        // Load texts with probabilities (during loading time)
-        console.log('📥 Loading texts from Google Sheets...');
-        const loadTextsPromise = loadTextsWithProbabilities();
-
-        // Wait for minimum loading time (3 seconds) and data loading
-        await Promise.all([
-            new Promise(resolve => setTimeout(resolve, 3000)), // 3 second minimum
-            loadTextsPromise
-        ]);
+        // Wait for minimum loading time (3 seconds)
+        await new Promise(resolve => setTimeout(resolve, 3000)); // 3 second minimum
 
         // Hide loading spinner
         loadingUI.hideLoadingOverlay();
