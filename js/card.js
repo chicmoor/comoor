@@ -903,11 +903,11 @@ class RateLimitUI {
 
 // Image data (equal probability for all images)
 const images = [
-    "assets/images/S__172548136.jpg",
-    "assets/images/S__172548137.jpg",
-    "assets/images/S__172548138.jpg",
-    "assets/images/S__172548139.jpg",
-    "assets/images/S__172548140.jpg"
+    "assets/images/background/image-1.jpg",
+    "assets/images/background/image-2.jpg",
+    "assets/images/background/image-3.jpg",
+    "assets/images/background/image-4.jpg",
+    "assets/images/background/image-5.jpg"
 ];
 
 // Google Sheets CSV URL with CORS proxy

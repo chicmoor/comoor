@@ -108,11 +108,14 @@ comoor/
 │   └── card-simple.js    ✅ 必要
 ├── assets/
 │   └── images/           ✅ 必要
-│       ├── S__172548136.jpg
-│       ├── S__172548137.jpg
-│       ├── S__172548138.jpg
-│       ├── S__172548139.jpg
-│       └── S__172548140.jpg
+│       ├── background/
+│       │   ├── image-1.jpg
+│       │   ├── image-2.jpg
+│       │   ├── image-3.jpg
+│       │   ├── image-4.jpg
+│       │   └── image-5.jpg
+│       ├── cooldown-red.jpg
+│       └── cooldown-yellow.jpg
 ├── docs/                 ⭕ 選擇性
 ├── CLAUDE.md             ⭕ 選擇性
 └── README.md             ⭕ 建議加入
