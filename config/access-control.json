@@ -1,0 +1,11 @@
+{
+  "requiredQueryParam": {
+    "name": "from",
+    "value": "picsee"
+  },
+  "errorMessage": {
+    "title": "提醒您：活動僅能透過掃描吊牌使用唷～",
+    "description": ""
+  },
+  "enabled": true
+}

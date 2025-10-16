@@ -776,16 +776,6 @@ class RateLimitUI {
             </div>
         `;
 
-        // Add debug info if in debug mode
-        if (RATE_LIMIT_CONFIG.debugMode) {
-            html += `
-                <div class="debug-info">
-                    Debug: ${rateLimitResult.reason}<br>
-                    FP: ${this.rateLimitManager.currentFingerprint?.slice(0, 8)}...
-                </div>
-            `;
-        }
-
         return html;
     }
 

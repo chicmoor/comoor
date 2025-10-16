@@ -19,7 +19,7 @@
 
 ## 🎬 前置條件
 
-- 使用者可訪問 card-simple.html
+- 使用者透過正確的 URL 訪問 card-simple.html（必須包含 `?from=picsee` 查詢參數）
 - Google 試算表可正常存取（或使用降級模式）
 - 瀏覽器支援 LocalStorage、Canvas、WebGL 等 API
 
@@ -36,7 +36,12 @@
 
 ```mermaid
 flowchart TD
-    A[使用者開啟 card-simple.html] --> B[顯示載入動畫]
+    A[使用者開啟 card-simple.html] --> A1[檢查 URL 查詢參數]
+    A1 --> A2{是否包含 ?from=picsee？}
+    A2 -->|否| A3[顯示拒絕訪問畫面]
+    A3 --> A4[阻擋所有互動]
+    A2 -->|是| A5[移除查詢參數]
+    A5 --> B[顯示載入動畫]
     B --> C[生成裝置指紋]
     C --> D[檢查速率限制]
     D --> E{是否在冷卻期？}
@@ -56,6 +61,7 @@ flowchart TD
 
 #### 與 UC-02 相同的部分
 
+0. **URL 查詢參數檢查**（同 UC-02）
 1. **頁面載入**（同 UC-02）
 2. **裝置指紋生成**（同 UC-02）
 3. **速率限制檢查**（同 UC-02）
@@ -80,11 +86,14 @@ flowchart TD
 
 ## 🔀 替代流程
 
+### 0a. 使用者無有效查詢參數訪問
+（同 UC-02 的 1a）
+
 ### 3a. 使用者在冷卻期內訪問
-（同 UC-02）
+（同 UC-02 的 4a）
 
 ### 4a. Google Sheets 載入失敗
-（同 UC-02）
+（同 UC-02 的 5a）
 
 ## 🆚 與 UC-02 的差異對照
 
@@ -99,6 +108,7 @@ flowchart TD
 | **CSS 檔案** | card.css | card-simple.css |
 | **JS 檔案** | card.js (1824 行) | card-simple.js (1147 行) |
 | **ContactFormManager** | ✅ 有 | ❌ 移除 |
+| **訪問控制** | ✅ 有 | ✅ 有（相同） |
 | **防刷系統** | ✅ 有 | ✅ 有（相同） |
 | **機率權重** | ✅ 有 | ✅ 有（相同） |
 | **載入動畫** | ✅ 有 | ✅ 有（相同） |
@@ -108,6 +118,7 @@ flowchart TD
 ## 🎨 介面元素
 
 ### 與 UC-02 相同
+- 拒絕訪問畫面
 - 卡片顯示樣式
 - 載入動畫
 - 冷卻提示視窗
@@ -259,31 +270,40 @@ function initializeCard() {
 
 ## 🧪 測試案例
 
-### TC-01: 首次訪問成功抽卡
+### TC-01: 無查詢參數訪問被阻擋
 （同 UC-02 TC-01）
 
-### TC-02: 一小時內重複訪問
+### TC-02: 錯誤查詢參數被阻擋
 （同 UC-02 TC-02）
 
-### TC-03: 驗證文字不可點擊
+### TC-03: 正確查詢參數且 URL 被清理
+（同 UC-02 TC-03）
+
+### TC-04: 首次訪問成功抽卡
+（同 UC-02 TC-04）
+
+### TC-05: 一小時內重複訪問
+（同 UC-02 TC-05）
+
+### TC-06: 驗證文字不可點擊
 1. 清除 LocalStorage
 2. 訪問 card-simple.html
 3. 等待卡片顯示
 4. 嘗試點擊文字
 5. **預期**：無任何反應，cursor 為預設樣式
 
-### TC-04: 驗證忽略 won 欄位
+### TC-07: 驗證忽略 won 欄位
 1. 設定試算表某文字 `won=1`
 2. 清除快取
 3. 訪問 card-simple.html
 4. 多次抽卡直到抽中該文字
 5. **預期**：文字為黑色，不可點擊
 
-### TC-05: Dev 模式測試
-（同 UC-02 TC-05）
+### TC-08: Dev 模式測試
+（同 UC-02 TC-08）
 
-### TC-06: Google Sheets 故障降級
-（同 UC-02 TC-06）
+### TC-09: Google Sheets 故障降級
+（同 UC-02 TC-09）
 
 ## 📊 效能比較
 
@@ -329,6 +349,10 @@ function initializeCard() {
    - 修改 `initializeCard()`，加入中獎判斷
    - 初始化 `contactFormManager`
 
+## 🔐 訪問控制機制
+
+與 UC-02 完全相同。參見 [UC-02 訪問控制機制](02-card-drawing-with-prizes.md#訪問控制機制)。
+
 ---
 
-**最後更新**：2025-10-05
+**最後更新**：2025-10-16

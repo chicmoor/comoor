@@ -1,0 +1,102 @@
+/**
+ * Access Control Overlay Styles
+ *
+ * Displays a full-screen blocking overlay when access validation fails.
+ * Prevents all user interactions with the page content.
+ */
+
+/* Full-screen overlay that blocks all interactions */
+.access-denied-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+    opacity: 0;
+    animation: fadeIn 0.5s ease-out forwards;
+    visibility: visible !important;
+}
+
+/* Content container */
+.access-denied-content {
+    max-width: 480px;
+    padding: 40px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.6s ease-out 0.2s backwards;
+    visibility: visible !important;
+}
+
+/* Title styling */
+.access-denied-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+    line-height: 1.4;
+}
+
+/* Description styling */
+.access-denied-description {
+    font-size: 16px;
+    color: #666;
+    line-height: 1.6;
+    margin-top: 12px;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Slide up animation */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 600px) {
+    .access-denied-content {
+        max-width: 90%;
+        padding: 30px 24px;
+        border-radius: 16px;
+    }
+
+    .access-denied-title {
+        font-size: 20px;
+    }
+
+    .access-denied-description {
+        font-size: 14px;
+    }
+}
+
+/* Prevent scrolling when overlay is active */
+body:has(.access-denied-overlay) {
+    overflow: hidden;
+}
+
+/* Hide page content initially (set by JS when access denied) */
+html[style*="visibility: hidden"] body:not(:has(.access-denied-overlay)) {
+    visibility: hidden;
+}

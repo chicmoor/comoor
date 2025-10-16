@@ -75,7 +75,16 @@ Advanced multi-factor fingerprinting system to identify unique devices:
 - Grace period: 5 minutes
 - LocalStorage + device fingerprint validation
 
+### Access Control
+Both `card.html` and `card-simple.html` implement URL query string validation:
+- **Required Parameter**: Users must access pages with `?from=picsee` query parameter
+- **URL Cleaning**: After validation, query string is removed via `history.replaceState()`
+- **Access Denied**: Users without valid query parameter see blocking overlay
+- **Configuration**: `config/access-control.json` allows customization
+- **Purpose**: Ensures pages are only accessible via specific entry points (e.g., QR codes)
+
 ### Key Features
+- Access control with URL query parameter validation
 - Dynamic gradient backgrounds (5 predefined SVG patterns)
 - Text overlay system with weighted random selection
 - Contact form modal for winners
@@ -98,10 +107,17 @@ When deploying, ensure the following directory structure is maintained:
 /
 ├── campaign.html
 ├── card.html
+├── card-simple.html
+├── config/
+│   └── access-control.json
 ├── css/
-│   └── card.css
+│   ├── access-control.css
+│   ├── card.css
+│   └── card-simple.css
 └── js/
-    └── card.js
+    ├── access-control.js
+    ├── card.js
+    └── card-simple.js
 ```
 
 All files must be served from the same origin to avoid CORS issues with the external CSS and JS references.
@@ -118,7 +134,10 @@ All files must be served from the same origin to avoid CORS issues with the exte
 - **card.html**: Modular structure with external CSS/JS for better maintainability and browser caching
 
 ### Testing & Development
-- Use `?dev=true` URL parameter to enable dev mode with reduced cooldown (10 seconds vs 1 hour)
+- **Access Control**: Use `?from=picsee` to access card pages (required in production)
+- **Dev Mode**: Use `?dev=true` URL parameter to enable dev mode with reduced cooldown (10 seconds vs 1 hour)
+  - Note: Can combine parameters: `?from=picsee&dev=true`
+- **Disable Access Control**: Set `enabled: false` in `config/access-control.json` for local testing
 - Debug mode enabled by default in `RATE_LIMIT_CONFIG` for console logging
 - Fingerprinting components logged to console for debugging
 
@@ -185,3 +204,61 @@ Frontend (contact-collection.js)
 - Sheet is located by GID (`2018488710`) not by name, making it resilient to sheet renaming
 - Timestamps are formatted in Taiwan timezone (`zh-TW`, `Asia/Taipei`)
 - All fields include fallback to empty string if data is missing
+
+## Access Control System
+
+### Overview
+Both `card.html` and `card-simple.html` implement query string validation to restrict access. This ensures users can only access the pages through specific entry points (e.g., QR codes on product tags).
+
+### Configuration File
+**Location**: `config/access-control.json`
+
+```json
+{
+  "requiredQueryParam": {
+    "name": "from",
+    "value": "picsee"
+  },
+  "errorMessage": {
+    "title": "活動僅能透過掃描吊牌使用唷～",
+    "description": ""
+  },
+  "enabled": true
+}
+```
+
+### How It Works
+1. **Validation**: On page load, JavaScript checks for `?from=picsee` in URL
+2. **Access Granted**: If valid, removes query string and continues loading
+3. **Access Denied**: If invalid/missing, shows full-screen blocking overlay
+4. **URL Cleaning**: Uses `history.replaceState()` to remove query string after validation
+
+### Implementation Files
+- **JavaScript**: `js/access-control.js` (~200 lines)
+- **CSS**: `css/access-control.css` (~80 lines)
+- **Config**: `config/access-control.json`
+
+### Integration
+Both HTML files load access control resources first (before other scripts):
+```html
+<!-- Access Control - Must load first -->
+<link rel="stylesheet" href="css/access-control.css">
+<script src="js/access-control.js"></script>
+```
+
+### Behavior
+- **Valid URL**: `https://domain.com/card.html?from=picsee`
+  - ✅ Access granted
+  - URL becomes: `https://domain.com/card.html`
+  - Page loads normally
+
+- **Invalid URLs**:
+  - `https://domain.com/card.html` ❌
+  - `https://domain.com/card.html?from=other` ❌
+  - Shows blocking overlay with message
+
+### Important Notes
+- **Refresh Behavior**: After URL is cleaned, refreshing the page will block access (query parameter is gone)
+- **Bookmarks**: Direct bookmarks to cleaned URL will be blocked
+- **Dev/Testing**: Set `enabled: false` in config.json to disable during development
+- **Combining Parameters**: Can combine with dev mode: `?from=picsee&dev=true`
