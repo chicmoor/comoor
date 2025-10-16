@@ -7,14 +7,16 @@
 ## 實際使用（老闆請看這）
 
 ### 可抽獎頁面
-- https://chicmoor.github.io/comoor/card.html
-- 網址後面加上 `?dev=true` 可以縮短冷卻時間變 10 秒
+- https://chicmoor.github.io/comoor/card.html?from=picsee
+- **重要**：必須加上 `?from=picsee` 才能訪問
+- 開發測試：`?from=picsee&dev=true` 可以縮短冷卻時間變 10 秒
 - 吃 Google 試算表的機率
 - 想測試中獎表單，可以把會中獎的機率設 90 %
 
 ### 純抽卡頁面
-- https://chicmoor.github.io/comoor/card-simple.html
-- 網址後面加上 `?dev=true` 可以縮短冷卻時間變 10 秒
+- https://chicmoor.github.io/comoor/card-simple.html?from=picsee
+- **重要**：必須加上 `?from=picsee` 才能訪問
+- 開發測試：`?from=picsee&dev=true` 可以縮短冷卻時間變 10 秒
 
 ## 🎯 主要功能頁面
 
@@ -24,6 +26,7 @@
 - 自包含設計（CSS/JS 皆內嵌）
 
 ### 2. card.html - 抽卡系統（含中獎機制）
+- 訪問控制（需 `?from=picsee` 查詢參數）
 - 隨機抽取卡片，顯示文字與圖片
 - 機率權重系統（透過 Google 試算表管理）
 - 中獎機制與聯絡表單
@@ -31,6 +34,7 @@
 - 裝置指紋辨識
 
 ### 3. card-simple.html - 簡易抽卡系統
+- 訪問控制（需 `?from=picsee` 查詢參數）
 - 純展示用抽卡系統
 - 無中獎機制、無聯絡表單
 - 同樣具備防刷功能
@@ -58,10 +62,14 @@ comoor/
 ├── campaign.html              # 活動報名頁面
 ├── card.html                  # 抽卡系統（含中獎）
 ├── card-simple.html           # 簡易抽卡系統
+├── config/
+│   └── access-control.json   # 訪問控制設定
 ├── css/
+│   ├── access-control.css    # 訪問控制樣式
 │   ├── card.css              # card.html 樣式
 │   └── card-simple.css       # card-simple.html 樣式
 ├── js/
+│   ├── access-control.js     # 訪問控制邏輯
 │   ├── card.js               # card.html 邏輯（含中獎系統）
 │   └── card-simple.js        # card-simple.html 邏輯（簡化版）
 ├── assets/
@@ -73,21 +81,28 @@ comoor/
 ## 🚀 快速開始
 
 ### 本地測試
-1. 直接在瀏覽器開啟 HTML 檔案
-2. 或使用簡易伺服器：
+1. 修改 `config/access-control.json` 設定 `"enabled": false` 以停用訪問控制
+2. 使用簡易伺服器：
    ```bash
    python -m http.server 8000
    # 訪問 http://localhost:8000/card.html
    ```
 
 ### 開發模式
-在 URL 加上 `?dev=true` 參數可啟用開發模式：
-- 冷卻時間從 1 小時降為 10 秒
-- 便於測試防刷機制
+在 URL 加上參數可啟用不同模式：
+- **訪問驗證**：`?from=picsee`（正式環境必須）
+- **開發模式**：`?dev=true`（冷卻時間從 1 小時降為 10 秒）
+- **組合使用**：`?from=picsee&dev=true`
 
-範例：`card.html?dev=true`
+範例：`card.html?from=picsee&dev=true`
 
 ## 🔑 關鍵特性
+
+### 訪問控制
+- **查詢參數驗證**：僅允許帶 `?from=picsee` 參數的訪問
+- **URL 清理**：驗證後自動移除查詢參數
+- **阻擋提示**：無效訪問顯示提示畫面
+- **可配置**：透過 `config/access-control.json` 設定
 
 ### 防刷系統
 - **裝置指紋辨識**：螢幕特徵、時區、語言、平台、Canvas、WebGL、音訊等多因子
@@ -151,6 +166,7 @@ window.CardRateLimit.debug.fingerprint()
 |------|---------------|-----------|------------------|
 | 活動報名表單 | ✅ | ❌ | ❌ |
 | 抽卡功能 | ❌ | ✅ | ✅ |
+| 訪問控制 | ❌ | ✅ | ✅ |
 | 中獎機制 | ❌ | ✅ | ❌ |
 | 聯絡表單 | ❌ | ✅ | ❌ |
 | 防刷系統 | ❌ | ✅ | ✅ |
@@ -172,4 +188,4 @@ window.CardRateLimit.debug.fingerprint()
 
 ---
 
-**最後更新**：2025-10-05
+**最後更新**：2025-10-16
