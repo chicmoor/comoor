@@ -84,6 +84,14 @@ class ContactFormManager {
         // Show overlay
         this.overlay.classList.add('show');
 
+        // Track form shown
+        if (window.pushToDataLayer) {
+            window.pushToDataLayer('contact_form_shown', {
+                prize_title: prizeTitleInput?.value || 'Unknown',
+                timestamp: Date.now()
+            });
+        }
+
         // Focus on first editable input (account, not prize title)
         setTimeout(() => {
             const accountInput = document.getElementById('account');
@@ -96,6 +104,13 @@ class ContactFormManager {
     // Hide the contact form modal
     hideForm() {
         if (!this.overlay) return;
+
+        // Track form hidden
+        if (window.pushToDataLayer) {
+            window.pushToDataLayer('contact_form_hidden', {
+                submission_completed: this.overlay.querySelector('#formSuccess')?.classList.contains('show') || false
+            });
+        }
 
         this.overlay.classList.remove('show');
         this.resetForm();
@@ -138,12 +153,32 @@ class ContactFormManager {
         const formData = this.getFormData();
         console.log('📋 Form data:', formData);
 
+        // Track submission start
+        const submissionStartTime = Date.now();
+        if (window.pushToDataLayer) {
+            window.pushToDataLayer('contact_form_submission_start', {
+                prize_title: formData.prizeTitle,
+                has_account: !!formData.account,
+                has_phone: !!formData.phone,
+                message_length: formData.message?.length || 0
+            });
+        }
+
         // Set loading state
         this.setSubmissionState(true);
 
         try {
             // Submit to Google Sheets
             await this.submitToGoogleSheets(formData);
+
+            // Track submission success
+            if (window.pushToDataLayer) {
+                window.pushToDataLayer('contact_form_submission_success', {
+                    prize_title: formData.prizeTitle,
+                    submission_method: 'web_app',
+                    time_to_submit_ms: Date.now() - submissionStartTime
+                });
+            }
 
             // Show success message
             this.showSuccess();
@@ -157,6 +192,16 @@ class ContactFormManager {
 
         } catch (error) {
             console.error('❌ Form submission failed:', error);
+
+            // Track submission error
+            if (window.pushToDataLayer) {
+                window.pushToDataLayer('contact_form_submission_error', {
+                    error_message: error.message || 'Unknown error',
+                    error_type: error.name || 'Error',
+                    retry_available: true
+                });
+            }
+
             this.showError(error.message);
         } finally {
             this.setSubmissionState(false);
@@ -218,6 +263,21 @@ class ContactFormManager {
         } else if (message.length < 5) {
             this.showFieldError('message', '訊息至少需要5個字');
             isValid = false;
+        }
+
+        // Track validation errors
+        if (!isValid && window.pushToDataLayer) {
+            const errorFields = [];
+            if (!account || account.length < 2) errorFields.push('account');
+            if (!phone || phone.length < 8) errorFields.push('phone');
+            if (!recipientName || recipientName.length < 2) errorFields.push('recipientName');
+            if (!address || address.length < 10) errorFields.push('address');
+            if (!message || message.length < 5) errorFields.push('message');
+
+            window.pushToDataLayer('contact_form_validation_error', {
+                invalid_fields: errorFields,
+                error_count: errorFields.length
+            });
         }
 
         return isValid;

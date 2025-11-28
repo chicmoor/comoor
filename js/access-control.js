@@ -179,10 +179,24 @@
         // Validate access
         const isValid = validateAccess();
 
+        // Get query parameter value for tracking
+        const urlParams = new URLSearchParams(window.location.search);
+        const foundParam = urlParams.get(config.requiredQueryParam.name);
+
         if (isValid) {
             // Access granted
             accessGranted = true;
             console.log('✅ Access granted');
+
+            // Track access validation success
+            if (window.pushToDataLayer) {
+                window.pushToDataLayer('access_control_validation', {
+                    access_granted: true,
+                    required_param: `${config.requiredQueryParam.name}=${config.requiredQueryParam.value}`,
+                    found_param: foundParam,
+                    enabled: config.enabled
+                });
+            }
 
             // Clean the URL (remove query string)
             cleanURL();
@@ -193,6 +207,16 @@
             // Access denied
             accessGranted = false;
             console.log('❌ Access denied - invalid or missing query parameter');
+
+            // Track access denied
+            if (window.pushToDataLayer) {
+                window.pushToDataLayer('access_denied', {
+                    error_message_title: config.errorMessage.title,
+                    url: window.location.href,
+                    referrer: document.referrer || 'direct',
+                    found_param: foundParam || null
+                });
+            }
 
             // Make sure document is visible for overlay to show
             document.documentElement.style.visibility = 'visible';

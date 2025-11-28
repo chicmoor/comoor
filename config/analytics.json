@@ -1,0 +1,10 @@
+{
+  "gtm": {
+    "containerId": "GTM-NQB6RCSF",
+    "enabled": true
+  },
+  "ga4": {
+    "measurementId": "",
+    "debug": false
+  }
+}

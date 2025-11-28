@@ -7,6 +7,86 @@
     <!-- Access Control - Must load first -->
     <link rel="stylesheet" href="css/access-control.css">
     <script src="js/access-control.js"></script>
+
+    <!-- Cookie Consent -->
+    <link rel="stylesheet" href="css/cookie-consent.css">
+    <script src="js/cookie-consent.js"></script>
+
+    <!-- Google Tag Manager - Loaded conditionally after consent -->
+    <script>
+        // Initialize dataLayer
+        window.dataLayer = window.dataLayer || [];
+
+        // Load analytics configuration from config/analytics.json
+        async function loadAnalyticsConfig() {
+            try {
+                const response = await fetch('config/analytics.json');
+                if (response.ok) {
+                    const config = await response.json();
+                    console.log('⚙️ Analytics config loaded:', config);
+                    return config;
+                } else {
+                    console.warn('⚠️ Failed to load analytics config, using fallback');
+                }
+            } catch (error) {
+                console.warn('⚠️ Failed to load analytics config:', error);
+            }
+
+            // Fallback config
+            return {
+                gtm: {
+                    containerId: 'GTM-NQB6RCSF',
+                    enabled: true
+                }
+            };
+        }
+
+        // Function to load GTM
+        function loadGTM(gtmId) {
+            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer',gtmId);
+            console.log('✅ GTM loaded:', gtmId);
+        }
+
+        // Initialize GTM with config
+        async function initializeGTM() {
+            const config = await loadAnalyticsConfig();
+
+            if (!config.gtm.enabled) {
+                console.log('📊 GTM disabled in config');
+                return;
+            }
+
+            window.GTM_ID = config.gtm.containerId;
+            window.analyticsConfig = config;
+
+            // Load GTM if consent already granted
+            if (window.cookieConsent && window.cookieConsent.consentStatus === 'accepted') {
+                loadGTM(window.GTM_ID);
+            }
+        }
+
+        // Load GTM when consent is granted
+        if (window.cookieConsent) {
+            window.cookieConsent.onAccept(async function() {
+                if (!window.GTM_ID) {
+                    await initializeGTM();
+                } else {
+                    loadGTM(window.GTM_ID);
+                }
+            });
+        }
+
+        // Initialize on page load
+        initializeGTM();
+    </script>
+
+    <!-- DataLayer Helper -->
+    <script src="js/gtm-datalayer.js"></script>
+
     <!-- Page Styles -->
     <link rel="stylesheet" href="css/card.css">
     <link rel="stylesheet" href="css/text-overlay.css">
@@ -14,6 +94,10 @@
     <link rel="stylesheet" href="css/contact-form.css">
 </head>
 <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NQB6RCSF"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
     <div class="container">
         <div class="image-container">
             <img id="cardImage" src="" alt="Card Image" class="card-image">
