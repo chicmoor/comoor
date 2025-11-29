@@ -1170,16 +1170,6 @@ async function loadConfigFromSheet() {
         console.log('🎉 Successfully loaded config from Google Sheets!');
         console.log('✨ Final config:', window.appConfig);
 
-        // Track config load success
-        if (window.pushToDataLayer) {
-            window.pushToDataLayer('config_load_success', {
-                cooldown_minutes: window.appConfig.cooldownMinutes,
-                prize_title: window.appConfig.prizeTitle,
-                data_source: cached ? 'cache' : 'sheets',
-                gid: '2058356234'
-            });
-        }
-
     } catch (error) {
         console.error('❌ Failed to load config from sheet:', error.message);
         console.log('📋 Error details:', {
@@ -1188,16 +1178,6 @@ async function loadConfigFromSheet() {
         });
         console.log('🔄 Using default config values');
         console.log('⚠️  Current config:', window.appConfig);
-
-        // Track config load error
-        if (window.pushToDataLayer) {
-            window.pushToDataLayer('config_load_error', {
-                error_message: error.message,
-                fallback_used: true,
-                default_cooldown: 60,
-                default_prize: '精美禮品'
-            });
-        }
 
         // Clear invalid cache
         localStorage.removeItem(CACHE_KEY);
@@ -1353,15 +1333,6 @@ async function initializeApp() {
     // Record page load time for tracking
     window.pageLoadTime = Date.now();
 
-    // Track page load start
-    if (window.pushToDataLayer) {
-        window.pushToDataLayer('page_load_start', {
-            dev_mode: isDevMode,
-            sheet_id: SHEET_ID,
-            timestamp: window.pageLoadTime
-        });
-    }
-
     console.log('🚀 Initializing Card Application with Advanced Rate Limiting...');
     console.log('📚 Google Sheets Configuration:');
     console.log(`  Sheet ID: ${SHEET_ID}`);
@@ -1413,15 +1384,6 @@ async function initializeApp() {
         if (!rateLimitResult.allowed) {
             console.log('🚫 User is rate limited:', rateLimitResult.reason);
 
-            // Track rate limit blocked
-            if (window.pushToDataLayer) {
-                window.pushToDataLayer('rate_limit_blocked', {
-                    reason: 'rate_limited',
-                    remaining_time_ms: rateLimitResult.remainingTime || 0,
-                    cooldown_end_time: rateLimitResult.cooldownEndTime || null
-                });
-            }
-
             // Show placeholder card
             initializePlaceholderCard();
 
@@ -1434,14 +1396,6 @@ async function initializeApp() {
 
         // User is allowed - proceed normally
         console.log('✅ Rate limit check passed:', rateLimitResult.reason);
-
-        // Track rate limit allowed
-        if (window.pushToDataLayer) {
-            window.pushToDataLayer('rate_limit_allowed', {
-                reason: rateLimitResult.reason || 'check_passed',
-                previous_limit_exists: rateLimitResult.reason !== 'no_previous_limit'
-            });
-        }
 
         // Initialize the card
         initializeCard();
@@ -1464,15 +1418,6 @@ async function initializeApp() {
 
     } catch (error) {
         console.error('❌ Initialization error:', error);
-
-        // Track initialization error
-        if (window.pushToDataLayer) {
-            window.pushToDataLayer('initialization_error', {
-                error_message: error.message || 'Unknown error',
-                error_stack: error.stack ? error.stack.substring(0, 200) : null,
-                fallback_mode_active: true
-            });
-        }
 
         // Hide loading spinner on error
         if (loadingUI) {
