@@ -88,19 +88,27 @@
 /* ============================================
    HEART LIKE BUTTON
    Instagram-style heart icon for liking stories
+   Fixed to bottom-right corner of viewport
    ============================================ */
 
 .heart-icon {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    font-size: 32px;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    font-size: 40px;
     cursor: pointer;
     user-select: none;
-    opacity: 0.7;
+    opacity: 0.8;
     transition: all 0.2s ease;
-    z-index: 10;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    z-index: 1000;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .heart-icon:hover {
@@ -128,16 +136,20 @@
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
     .heart-icon {
-        font-size: 28px;
-        bottom: 10px;
-        right: 10px;
+        font-size: 36px;
+        width: 56px;
+        height: 56px;
+        bottom: 16px;
+        right: 16px;
     }
 }
 
 @media (max-width: 480px) {
     .heart-icon {
-        font-size: 24px;
-        bottom: 8px;
-        right: 8px;
+        font-size: 32px;
+        width: 50px;
+        height: 50px;
+        bottom: 12px;
+        right: 12px;
     }
 }

@@ -1305,7 +1305,13 @@ function initializeCard() {
             overlayContainer.onclick = null;
         }
 
-        // Add heart icon for liking the story
+        // Add heart icon for liking the story (fixed to window corner)
+        // Remove any existing heart icon first
+        const existingHeart = document.querySelector('.heart-icon');
+        if (existingHeart) {
+            existingHeart.remove();
+        }
+
         const heartIcon = document.createElement('div');
         heartIcon.className = 'heart-icon';
         heartIcon.innerHTML = '🤍'; // Outline heart
@@ -1313,10 +1319,19 @@ function initializeCard() {
         heartIcon.setAttribute('aria-label', '喜歡這個故事');
         heartIcon.title = '喜歡這個故事';
 
+        // Store current story info for the click handler
+        const currentStory = {
+            title: randomText.title,
+            description: randomText.description,
+            won: randomText.won,
+            image: randomImage,
+            probability: randomText.probability
+        };
+
         // Click handler
         let hasLiked = false; // Track if user already liked this card
         heartIcon.addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevent triggering overlay click for winners
+            e.stopPropagation(); // Prevent any parent click events
 
             // Visual feedback
             if (!hasLiked) {
@@ -1333,20 +1348,20 @@ function initializeCard() {
             // Track to GA4
             if (window.pushToDataLayer) {
                 window.pushToDataLayer('story_liked', {
-                    story_text: randomText.title,
-                    story_description: randomText.description.substring(0, 100), // First 100 chars
-                    is_winner: randomText.won === 1,
-                    selected_image: randomImage,
-                    text_probability: randomText.probability,
+                    story_text: currentStory.title,
+                    story_description: currentStory.description.substring(0, 100), // First 100 chars
+                    is_winner: currentStory.won === 1,
+                    selected_image: currentStory.image,
+                    text_probability: currentStory.probability,
                     time_on_page_ms: Date.now() - window.pageLoadTime
                 });
             }
 
-            console.log('❤️ Story liked:', randomText.title);
+            console.log('❤️ Story liked:', currentStory.title);
         });
 
-        // Append to overlay
-        overlayContainer.appendChild(heartIcon);
+        // Append to body (fixed position relative to viewport)
+        document.body.appendChild(heartIcon);
     } else {
         console.error('❌ Text overlay elements not found in DOM');
     }
