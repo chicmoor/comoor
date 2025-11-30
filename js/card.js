@@ -1304,6 +1304,49 @@ function initializeCard() {
             overlayContainer.style.cursor = 'default';
             overlayContainer.onclick = null;
         }
+
+        // Add heart icon for liking the story
+        const heartIcon = document.createElement('div');
+        heartIcon.className = 'heart-icon';
+        heartIcon.innerHTML = '🤍'; // Outline heart
+        heartIcon.setAttribute('role', 'button');
+        heartIcon.setAttribute('aria-label', '喜歡這個故事');
+        heartIcon.title = '喜歡這個故事';
+
+        // Click handler
+        let hasLiked = false; // Track if user already liked this card
+        heartIcon.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent triggering overlay click for winners
+
+            // Visual feedback
+            if (!hasLiked) {
+                heartIcon.innerHTML = '❤️'; // Filled heart
+                hasLiked = true;
+            }
+
+            // Animation
+            heartIcon.classList.add('clicked');
+            setTimeout(() => {
+                heartIcon.classList.remove('clicked');
+            }, 600);
+
+            // Track to GA4
+            if (window.pushToDataLayer) {
+                window.pushToDataLayer('story_liked', {
+                    story_text: randomText.title,
+                    story_description: randomText.description.substring(0, 100), // First 100 chars
+                    is_winner: randomText.won === 1,
+                    selected_image: randomImage,
+                    text_probability: randomText.probability,
+                    time_on_page_ms: Date.now() - window.pageLoadTime
+                });
+            }
+
+            console.log('❤️ Story liked:', randomText.title);
+        });
+
+        // Append to overlay
+        overlayContainer.appendChild(heartIcon);
     } else {
         console.error('❌ Text overlay elements not found in DOM');
     }
