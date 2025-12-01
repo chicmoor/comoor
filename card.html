@@ -49,6 +49,40 @@
             'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
             })(window,document,'script','dataLayer',gtmId);
             console.log('✅ GTM loaded:', gtmId);
+
+            // Configure cookie domain after GTM loads
+            setTimeout(configureGA4CookieDomain, 1000); // Wait 1s for GTM to initialize
+        }
+
+        // Configure GA4 cookie domain
+        function configureGA4CookieDomain() {
+            console.log('🔧 Configuring GA4 cookie domain...');
+
+            // Method 1: Using dataLayer (recommended for GTM)
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                'event': 'cookie_config',
+                'cookie_domain': 'auto',
+                'cookie_flags': 'SameSite=None;Secure'
+            });
+
+            // Method 2: Direct gtag configuration (fallback)
+            // Wait for gtag to be available (loaded by GTM's GA4 tag)
+            const waitForGtag = setInterval(function() {
+                if (typeof window.gtag === 'function') {
+                    clearInterval(waitForGtag);
+                    window.gtag('config', 'G-3NKQDRH55Z', {
+                        'cookie_domain': 'auto',
+                        'cookie_flags': 'SameSite=None;Secure'
+                    });
+                    console.log('✅ GA4 cookie domain configured via gtag');
+                }
+            }, 100);
+
+            // Clear interval after 5 seconds to prevent infinite checking
+            setTimeout(function() {
+                clearInterval(waitForGtag);
+            }, 5000);
         }
 
         // Initialize GTM with config
