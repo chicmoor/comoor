@@ -896,6 +896,163 @@ class RateLimitUI {
 }
 
 // ===========================================
+// CARD ENGAGEMENT TRACKING
+// ===========================================
+
+/**
+ * CardEngagementTracker
+ * Tracks user engagement with drawn cards by measuring visible time on page.
+ * Fires 'stayed_5_sec' event when user stays 5+ visible seconds after card draw.
+ */
+class CardEngagementTracker {
+    constructor() {
+        this.timerId = null;
+        this.isTracked = false;
+        this.startTime = null;
+        this.pauseTime = null;
+        this.isPageVisible = !document.hidden;
+        this.accumulatedTime = 0;
+        this.visibilityLossCount = 0;
+        this.cardContext = null;
+
+        // Bind visibility change handler
+        this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
+        document.addEventListener('visibilitychange', this.handleVisibilityChange);
+
+        console.log('📊 CardEngagementTracker initialized');
+    }
+
+    /**
+     * Start tracking engagement after card draw
+     * @param {Object} cardContext - Card data (title, probability, isWinner, image)
+     */
+    startTracking(cardContext) {
+        // Store card context for event data
+        this.cardContext = cardContext;
+
+        // Reset state
+        this.resetTracking();
+
+        // Start timer if page is visible
+        if (!document.hidden) {
+            this.startTime = Date.now();
+            console.log('⏱️  Started 5-second engagement tracking');
+        } else {
+            console.log('⏱️  Page hidden, tracking will start when visible');
+        }
+
+        // Set check interval (every 500ms for accuracy)
+        this.timerId = setInterval(() => this.checkAndFireEvent(), 500);
+    }
+
+    /**
+     * Stop tracking
+     */
+    stopTracking() {
+        if (this.timerId) {
+            clearInterval(this.timerId);
+            this.timerId = null;
+        }
+        console.log('⏱️  Stopped engagement tracking');
+    }
+
+    /**
+     * Reset tracking state
+     */
+    resetTracking() {
+        this.stopTracking();
+        this.isTracked = false;
+        this.startTime = null;
+        this.pauseTime = null;
+        this.accumulatedTime = 0;
+        this.visibilityLossCount = 0;
+        this.isPageVisible = !document.hidden;
+    }
+
+    /**
+     * Handle page visibility changes
+     * Pauses timer when page hidden, resumes when visible
+     */
+    handleVisibilityChange() {
+        const now = Date.now();
+
+        if (document.hidden) {
+            // Page became hidden - pause timer
+            if (this.startTime && !this.pauseTime) {
+                this.accumulatedTime += now - this.startTime;
+                this.pauseTime = now;
+                this.visibilityLossCount++;
+                console.log(`⏸️  Page hidden. Accumulated: ${this.accumulatedTime}ms`);
+            }
+        } else {
+            // Page became visible - resume timer
+            if (this.pauseTime) {
+                this.startTime = now;
+                this.pauseTime = null;
+                console.log(`▶️  Page visible. Resuming from: ${this.accumulatedTime}ms`);
+            }
+        }
+    }
+
+    /**
+     * Check if 5 seconds passed and fire event
+     * Called every 500ms by interval timer
+     */
+    checkAndFireEvent() {
+        // Skip if already tracked
+        if (this.isTracked) return;
+
+        // Calculate total visible time
+        let totalVisibleTime = this.accumulatedTime;
+        if (this.startTime && !this.pauseTime) {
+            totalVisibleTime += Date.now() - this.startTime;
+        }
+
+        // Check if 5 seconds threshold reached
+        if (totalVisibleTime >= 5000) {
+            this.fireEvent(totalVisibleTime);
+            this.isTracked = true;
+            this.stopTracking();
+        }
+    }
+
+    /**
+     * Fire the GA4 event
+     * @param {number} actualTime - Actual visible time in milliseconds
+     */
+    fireEvent(actualTime) {
+        if (!this.cardContext) {
+            console.warn('⚠️  No card context available for stayed_5_sec event');
+            return;
+        }
+
+        console.log('🎉 User stayed 5+ seconds - firing event');
+
+        if (window.pushToDataLayer) {
+            window.pushToDataLayer('stayed_5_sec', {
+                page_path: window.location.pathname,
+                page_location: window.location.href,
+                selected_text_title: this.cardContext.title,
+                text_probability: this.cardContext.probability,
+                is_winner: this.cardContext.isWinner,
+                selected_image: this.cardContext.image,
+                actual_stay_time_ms: Math.round(actualTime),
+                time_on_page_total_ms: Date.now() - window.pageLoadTime,
+                visibility_losses: this.visibilityLossCount
+            });
+        }
+    }
+
+    /**
+     * Cleanup resources
+     */
+    destroy() {
+        this.stopTracking();
+        document.removeEventListener('visibilitychange', this.handleVisibilityChange);
+    }
+}
+
+// ===========================================
 // CONTACT FORM MANAGEMENT (UC-06)
 // ===========================================
 // ContactFormManager is now in /js/contact-collection.js
@@ -1378,6 +1535,16 @@ function initializeCard() {
             total_available_images: images.length
         });
     }
+
+    // Start engagement tracking after card is shown
+    if (cardEngagementTracker) {
+        cardEngagementTracker.startTracking({
+            title: randomText.title,
+            probability: randomText.probability,
+            isWinner: randomText.won === 1,
+            image: randomImage
+        });
+    }
 }
 
 // Global rate limiting system
@@ -1385,6 +1552,7 @@ let rateLimitManager = null;
 let rateLimitUI = null;
 let loadingUI = null;
 let contactFormManager = null;
+let cardEngagementTracker = null;
 
 // Initialize the application with rate limiting and loading spinner
 async function initializeApp() {
@@ -1426,6 +1594,7 @@ async function initializeApp() {
         rateLimitManager = new RateLimitManager();
         rateLimitUI = new RateLimitUI(rateLimitManager);
         contactFormManager = new ContactFormManager();
+        cardEngagementTracker = new CardEngagementTracker();
 
         console.log('🔒 Initializing rate limiting system...');
         const rateLimitResult = await rateLimitManager.initialize();
@@ -1528,6 +1697,7 @@ window.CardRateLimit = {
     // Core functions
     manager: () => rateLimitManager,
     ui: () => rateLimitUI,
+    engagement: () => cardEngagementTracker,
 
     // Debugging functions
     debug: {
@@ -1565,6 +1735,24 @@ window.CardRateLimit = {
             console.table(rateLimitManager.fingerprinter.components);
             console.log('🔑 Full Fingerprint Hash:', rateLimitManager.currentFingerprint);
             return rateLimitManager.fingerprinter.components;
+        },
+        engagement: () => {
+            if (!cardEngagementTracker) {
+                console.log('❌ Engagement tracker not initialized');
+                return;
+            }
+
+            const status = {
+                isTracked: cardEngagementTracker.isTracked,
+                accumulatedTime: cardEngagementTracker.accumulatedTime,
+                isPageVisible: cardEngagementTracker.isPageVisible,
+                visibilityLossCount: cardEngagementTracker.visibilityLossCount,
+                hasTimer: !!cardEngagementTracker.timerId,
+                cardTitle: cardEngagementTracker.cardContext?.title || 'N/A'
+            };
+
+            console.table(status);
+            return status;
         }
     },
 
