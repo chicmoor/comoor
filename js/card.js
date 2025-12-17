@@ -1158,6 +1158,57 @@ function validateTextProbabilitySheet(csvData) {
     return isValid;
 }
 
+/**
+ * Parse a single CSV line following RFC 4180 standard
+ * Properly handles:
+ * - Fields enclosed in double quotes
+ * - Commas inside quoted fields (like Chinese commas ，)
+ * - Multi-line fields (newlines inside quotes)
+ * - Escaped quotes ("" becomes ")
+ */
+function parseCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    let i = 0;
+
+    while (i < line.length) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                // Escaped quote: "" → "
+                current += '"';
+                i += 2; // Skip both quotes
+                continue;
+            } else {
+                // Toggle quote state
+                inQuotes = !inQuotes;
+                i++;
+                continue;
+            }
+        }
+
+        if (char === ',' && !inQuotes) {
+            // Field separator (only outside quotes)
+            result.push(current);
+            current = '';
+            i++;
+            continue;
+        }
+
+        // Regular character (including commas inside quotes)
+        current += char;
+        i++;
+    }
+
+    // Add last field
+    result.push(current);
+
+    return result;
+}
+
 // Parse CSV data for text probabilities with title and description
 function parseTextProbabilityCSV(csvData) {
     const lines = csvData.trim().split('\n');
@@ -1180,8 +1231,8 @@ function parseTextProbabilityCSV(csvData) {
         const line = lines[i];
         console.log(`Line ${i + 1}: "${line}"`);
 
-        // Handle CSV parsing - split by comma and clean quotes
-        const parts = line.split(',').map(part => part.replace(/^\"|\"$/g, '').trim());
+        // Handle CSV parsing - use proper RFC 4180 compliant parser
+        const parts = parseCSVLine(line).map(part => part.trim());
         console.log(`  Raw parts: [${parts.map(p => `"${p}"`).join(', ')}]`);
 
         if (parts.length >= 3) {
@@ -1552,6 +1603,7 @@ let rateLimitManager = null;
 let rateLimitUI = null;
 let loadingUI = null;
 let contactFormManager = null;
+let commentPanelManager = null;
 let cardEngagementTracker = null;
 
 // Initialize the application with rate limiting and loading spinner
@@ -1594,6 +1646,7 @@ async function initializeApp() {
         rateLimitManager = new RateLimitManager();
         rateLimitUI = new RateLimitUI(rateLimitManager);
         contactFormManager = new ContactFormManager();
+        commentPanelManager = new CommentPanelManager();
         cardEngagementTracker = new CardEngagementTracker();
 
         console.log('🔒 Initializing rate limiting system...');

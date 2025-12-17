@@ -1,0 +1,408 @@
+/* ===========================================
+   COMMENT PANEL STYLES
+   User comment feature for story feedback
+   =========================================== */
+
+/* ============================================
+   COMMENT ICON BUTTON
+   Fixed to bottom-right corner, below heart icon
+   ============================================ */
+
+.comment-icon {
+    position: fixed;
+    bottom: 90px; /* Heart icon (20px) + height (60px) + gap (10px) */
+    right: 20px;
+    font-size: 40px;
+    cursor: pointer;
+    user-select: none;
+    opacity: 0.8;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.comment-icon:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.comment-icon:active {
+    transform: scale(0.95);
+}
+
+.comment-icon.clicked {
+    animation: iconPulse 0.6s ease;
+}
+
+@keyframes iconPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Mobile responsive adjustments for comment icon */
+@media (max-width: 768px) {
+    .comment-icon {
+        font-size: 36px;
+        width: 56px;
+        height: 56px;
+        bottom: 82px; /* Heart (16px) + height (56px) + gap (10px) */
+        right: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .comment-icon {
+        font-size: 32px;
+        width: 50px;
+        height: 50px;
+        bottom: 72px; /* Heart (12px) + height (50px) + gap (10px) */
+        right: 12px;
+    }
+}
+
+/* ============================================
+   COMMENT PANEL OVERLAY & CONTAINER
+   Slide-up panel from bottom (1/3 screen height)
+   ============================================ */
+
+/* Semi-transparent backdrop overlay */
+.comment-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: flex-end; /* Align container to bottom */
+    z-index: 2000;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.comment-panel-overlay.show {
+    display: flex;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Panel container - slides up from bottom */
+.comment-panel-container {
+    width: 100%;
+    max-height: 33.33vh; /* 1/3 of viewport height */
+    background: white;
+    border-radius: 20px 20px 0 0; /* Rounded top corners only */
+    padding: 24px;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+    transform: translateY(100%); /* Start hidden below viewport */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.comment-panel-overlay.show .comment-panel-container {
+    transform: translateY(0); /* Slide up into view */
+}
+
+/* ============================================
+   COMMENT PANEL HEADER
+   ============================================ */
+
+.comment-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-shrink: 0; /* Don't shrink header when scrolling */
+}
+
+.comment-panel-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+.comment-panel-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+    padding: 4px 8px;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.comment-panel-close:hover {
+    color: #333;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+/* ============================================
+   COMMENT FORM
+   ============================================ */
+
+.comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+}
+
+/* Form Groups and Labels */
+.comment-form .form-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.comment-form .form-label {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+/* Form Textarea */
+.comment-form .form-textarea {
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    font-family: inherit;
+    transition: border-color 0.3s ease;
+    min-height: 80px;
+    resize: vertical;
+    flex: 1;
+}
+
+.comment-form .form-textarea:focus {
+    outline: none;
+    border-color: #2196F3;
+}
+
+.comment-form .form-textarea.error {
+    border-color: #f44336;
+}
+
+/* ============================================
+   CHARACTER COUNTER
+   ============================================ */
+
+.character-counter {
+    text-align: right;
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
+
+.character-counter.warning {
+    color: #ff9800; /* Orange at 450 chars */
+    font-weight: bold;
+}
+
+.character-counter.limit {
+    color: #f44336; /* Red at 500 chars */
+    font-weight: bold;
+}
+
+/* ============================================
+   ERROR MESSAGES
+   ============================================ */
+
+.comment-form .error-message {
+    color: #f44336;
+    font-size: 14px;
+    margin-top: 4px;
+    display: none;
+}
+
+.comment-form .error-message.show {
+    display: block;
+}
+
+/* ============================================
+   FORM BUTTONS
+   ============================================ */
+
+.comment-form .form-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+    flex-shrink: 0; /* Don't shrink buttons */
+}
+
+.comment-form .form-button {
+    flex: 1;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.comment-form .form-button-primary {
+    background: #2196F3;
+    color: white;
+}
+
+.comment-form .form-button-primary:hover:not(:disabled) {
+    background: #1976D2;
+}
+
+.comment-form .form-button-primary:disabled {
+    background: #BDBDBD;
+    cursor: not-allowed;
+}
+
+.comment-form .form-button-secondary {
+    background: #f5f5f5;
+    color: #333;
+}
+
+.comment-form .form-button-secondary:hover {
+    background: #e0e0e0;
+}
+
+/* ============================================
+   LOADING SPINNER
+   ============================================ */
+
+.form-loading {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.form-loading.show {
+    display: flex;
+}
+
+.form-loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Hide submit text when loading */
+.form-button-primary.loading #commentSubmitText {
+    display: none;
+}
+
+.form-button-primary.loading .form-loading {
+    display: flex;
+}
+
+/* ============================================
+   SUCCESS & ERROR MESSAGES
+   ============================================ */
+
+.comment-form .form-success,
+.comment-form .form-error {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    display: none;
+}
+
+.comment-form .form-success {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.comment-form .form-success.show {
+    display: block;
+}
+
+.comment-form .form-error {
+    background: #FFEBEE;
+    color: #C62828;
+}
+
+.comment-form .form-error.show {
+    display: block;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+/* Tablet adjustments */
+@media (max-width: 768px) {
+    .comment-panel-container {
+        max-height: 40vh; /* Slightly more on tablet */
+        padding: 20px;
+    }
+
+    .comment-panel-title {
+        font-size: 18px;
+    }
+
+    .comment-form .form-textarea {
+        min-height: 60px;
+    }
+
+    .comment-form .form-button {
+        padding: 12px 20px;
+        font-size: 15px;
+    }
+}
+
+/* Mobile adjustments */
+@media (max-width: 480px) {
+    .comment-panel-container {
+        max-height: 45vh; /* Even more on mobile for keyboard */
+        padding: 16px;
+    }
+
+    .comment-panel-title {
+        font-size: 16px;
+    }
+
+    .comment-panel-close {
+        font-size: 20px;
+    }
+
+    .comment-form .form-label {
+        font-size: 14px;
+    }
+
+    .comment-form .form-textarea {
+        font-size: 14px;
+        min-height: 50px;
+    }
+
+    .comment-form .form-button {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+
+    .character-counter {
+        font-size: 11px;
+    }
+}
