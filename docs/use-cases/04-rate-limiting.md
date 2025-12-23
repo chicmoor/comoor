@@ -211,28 +211,37 @@ flowchart TD
 - **背景圖片**：隨機選擇以下圖片之一
   - `assets/images/cooldown-yellow.jpg` - 黃色背景的可愛角色
   - `assets/images/cooldown-red.jpg` - 紅色背景的可愛角色
-- **倒數計時器**：顯示於圖片中央的白色對話框區域內
-  - 顯示「下次可抽卡時間」標籤
-  - 顯示剩餘時間（HH:MM 格式）
-  - 每秒自動更新
+- **提醒文字**：顯示於圖片中央的靜態提醒訊息，包含標題與描述
+  - 從設定檔隨機選擇提醒選項
+  - 預設選項：
+    - 選項 1：標題「頁面冷卻中」/ 描述「請稍候」
+    - 選項 2：標題「謝謝你常常想到我們」/ 描述「歡迎你晚一點再回來」
+  - 文字保持靜態直到冷卻期結束
+- **自動重新整理**：冷卻期結束後自動重新整理頁面
 
-### 技術實作
-```javascript
-// 隨機選擇冷卻圖片
-const cooldownImages = [
-    'assets/images/cooldown-yellow.jpg',
-    'assets/images/cooldown-red.jpg'
-];
-const randomCooldownImage = cooldownImages[Math.floor(Math.random() * cooldownImages.length)];
-
-// 設定為背景圖片
-overlayElement.style.backgroundImage = `url('${randomCooldownImage}')`;
+### 提醒文字設定
+提醒文字透過 `config/rate-limit-ui.json` 設定：
+```json
+{
+  "reminderTexts": [
+    {
+      "reminderTitle": "頁面冷卻中",
+      "reminderDescription": "請稍候"
+    },
+    {
+      "reminderTitle": "謝謝你常常想到我們",
+      "reminderDescription": "歡迎你晚一點再回來"
+    }
+  ]
+}
 ```
+可隨時修改設定檔以新增或變更提醒文字，變更後重新載入頁面即生效。
 
 ### CSS 樣式
 - 背景圖片：`background-size: cover; background-position: center;`
-- 倒數容器：絕對定位於中央 (`top: 50%; left: 50%; transform: translate(-50%, -50%)`)
-- 文字顏色：深色 (`#333`) 以確保在白色對話框區域清晰可見
+- 提醒文字容器：絕對定位於中央 (`top: 47%; left: 50%; transform: translate(-50%, -50%)`)
+- 標題樣式：粗體、深色 (`#333`)，桌面 20px、平板 18px、手機 16px
+- 描述樣式：一般字重、灰色 (`#555`)，桌面 16px、平板 14px、手機 13px
 
 ## ⚙️ 設定參數
 

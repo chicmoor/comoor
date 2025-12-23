@@ -44,31 +44,28 @@
     max-width: 320px;
 }
 
-.countdown-container {
-    background: transparent;
-    border-radius: 8px;
-    padding: 20px 24px;
-    margin-bottom: 0;
-    min-width: 200px;
-    border: none;
+.cooldown-reminder-container {
     position: absolute;
-    top: 47%;
+    top: 44%;
     left: 50%;
     transform: translate(-50%, -50%);
+    text-align: center;
+    padding: 20px 40px;
+    max-width: 80%;
 }
 
-.countdown-label {
-    font-size: 16px;
-    color: #333;
-    margin-bottom: 12px;
-    font-weight: 500;
-}
-
-.countdown-time {
-    font-size: 32px;
+.cooldown-reminder-title {
+    font-size: 20px;
     font-weight: bold;
     color: #333;
-    font-family: 'Courier New', monospace;
+    line-height: 1.4;
+    margin-bottom: 8px;
+}
+
+.cooldown-reminder-description {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.6;
 }
 
 .rate-limit-details {
@@ -137,12 +134,16 @@
         max-width: 280px;
     }
 
-    .countdown-label {
-        font-size: 14px;
+    .cooldown-reminder-container {
+        padding: 20px 30px;
     }
 
-    .countdown-time {
-        font-size: 28px;
+    .cooldown-reminder-title {
+        font-size: 18px;
+    }
+
+    .cooldown-reminder-description {
+        font-size: 14px;
     }
 
     .rate-limit-icon {
@@ -161,18 +162,17 @@
         max-width: 250px;
     }
 
-    .countdown-container {
-        padding: 16px 20px;
-        min-width: 160px;
+    .cooldown-reminder-container {
+        padding: 15px 20px;
     }
 
-    .countdown-label {
+    .cooldown-reminder-title {
+        font-size: 16px;
+        margin-bottom: 6px;
+    }
+
+    .cooldown-reminder-description {
         font-size: 13px;
-        margin-bottom: 8px;
-    }
-
-    .countdown-time {
-        font-size: 24px;
     }
 
     .rate-limit-icon {

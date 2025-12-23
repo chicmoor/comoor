@@ -724,6 +724,36 @@ class LoadingUI {
     }
 }
 
+// Rate limit UI configuration with defaults
+let rateLimitUIConfig = {
+    reminderTexts: [
+        {
+            reminderTitle: '頁面冷卻中',
+            reminderDescription: '請稍候'
+        },
+        {
+            reminderTitle: '謝謝你常常想到我們',
+            reminderDescription: '歡迎你晚一點再回來'
+        }
+    ]
+};
+
+// Load rate limit UI config from JSON file
+async function loadRateLimitUIConfig() {
+    try {
+        const response = await fetch('config/rate-limit-ui.json');
+        if (response.ok) {
+            const loadedConfig = await response.json();
+            rateLimitUIConfig = { ...rateLimitUIConfig, ...loadedConfig };
+            console.log('⚙️ Rate limit UI config loaded:', rateLimitUIConfig);
+        } else {
+            console.warn('⚠️ Failed to load rate limit UI config, using defaults');
+        }
+    } catch (error) {
+        console.warn('⚠️ Failed to load rate limit UI config, using defaults:', error);
+    }
+}
+
 // Rate Limit UI Manager
 class RateLimitUI {
     constructor(rateLimitManager) {
@@ -770,9 +800,9 @@ class RateLimitUI {
     // Generate HTML content for the overlay
     generateOverlayHTML(rateLimitResult) {
         let html = `
-            <div class="countdown-container">
-                <div class="countdown-label">下次可抽卡時間</div>
-                <div class="countdown-time" id="countdown-display">--:--</div>
+            <div class="cooldown-reminder-container">
+                <div class="cooldown-reminder-title" id="cooldown-reminder-title"></div>
+                <div class="cooldown-reminder-description" id="cooldown-reminder-description"></div>
             </div>
         `;
 
@@ -781,49 +811,35 @@ class RateLimitUI {
 
     // Start countdown timer
     startCountdown(remainingTimeMs) {
-        const countdownDisplay = document.getElementById('countdown-display');
-        if (!countdownDisplay) return;
+        // Select random reminder from config
+        const reminderTexts = rateLimitUIConfig.reminderTexts;
+        const randomReminder = reminderTexts[Math.floor(Math.random() * reminderTexts.length)];
 
-        // Clear any existing interval
-        if (this.countdownInterval) {
-            clearInterval(this.countdownInterval);
+        // Display the title and description
+        const titleElement = document.getElementById('cooldown-reminder-title');
+        const descriptionElement = document.getElementById('cooldown-reminder-description');
+
+        if (titleElement) {
+            titleElement.textContent = randomReminder.reminderTitle;
         }
 
-        const updateCountdown = () => {
-            const remaining = this.rateLimitManager.getRemainingCooldownTime();
+        if (descriptionElement) {
+            descriptionElement.textContent = randomReminder.reminderDescription;
+        }
 
-            if (remaining <= 0) {
-                // Cooldown finished - refresh the page or remove overlay
+        // Set timeout to refresh when cooldown ends
+        const remainingTime = this.rateLimitManager.getRemainingCooldownTime();
+        if (remainingTime > 0) {
+            setTimeout(() => {
                 this.hideRateLimitOverlay();
                 this.refreshPage();
-                return;
-            }
+            }, remainingTime);
+        }
 
-            // Format time display
-            const totalMinutes = Math.ceil(remaining / (1000 * 60));
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = totalMinutes % 60;
-
-            let timeDisplay;
-            if (hours > 0) {
-                timeDisplay = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-            } else {
-                timeDisplay = `00:${minutes.toString().padStart(2, '0')}`;
-            }
-
-            countdownDisplay.textContent = timeDisplay;
-
-            // Update title for additional context
-            if (hours > 0) {
-                countdownDisplay.style.fontSize = '24px';
-            }
-        };
-
-        // Update immediately
-        updateCountdown();
-
-        // Update every second
-        this.countdownInterval = setInterval(updateCountdown, 1000);
+        if (RATE_LIMIT_CONFIG.debugMode) {
+            console.log('📝 Cooldown reminder displayed:', randomReminder);
+            console.log(`⏱️ Auto-refresh scheduled in ${Math.ceil(remainingTime / 1000)} seconds`);
+        }
     }
 
     // Hide rate limit overlay
@@ -1288,14 +1304,16 @@ async function initializeApp() {
         console.log('🔒 Initializing rate limiting system...');
         const rateLimitResult = await rateLimitManager.initialize();
 
-        // Load texts with probabilities (during loading time)
-        console.log('📥 Loading texts from Google Sheets...');
+        // Load texts with probabilities and UI config (during loading time)
+        console.log('📥 Loading texts from Google Sheets and UI config...');
         const loadTextsPromise = loadTextsWithProbabilities();
+        const loadUIConfigPromise = loadRateLimitUIConfig();
 
         // Wait for minimum loading time (3 seconds) and data loading
         await Promise.all([
             new Promise(resolve => setTimeout(resolve, 3000)), // 3 second minimum
-            loadTextsPromise
+            loadTextsPromise,
+            loadUIConfigPromise
         ]);
 
         // Hide loading spinner
