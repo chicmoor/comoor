@@ -220,7 +220,7 @@ Both `card.html` and `card-simple.html` implement query string validation to res
     "value": "picsee"
   },
   "errorMessage": {
-    "title": "活動僅能透過掃描吊牌使用唷～",
+    "title": "感應手中吊牌，重啟一段靜謐旅程。",
     "description": ""
   },
   "enabled": true
