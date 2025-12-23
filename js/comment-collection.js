@@ -232,15 +232,7 @@ class CommentPanelManager {
                     time_to_submit_ms: Date.now() - submissionStartTime
                 });
             }
-
-            // Show success message
             this.showSuccess();
-
-            // Auto-close panel after 2 seconds
-            setTimeout(() => {
-                this.hidePanel();
-            }, 2000);
-
             console.log('✅ Comment submitted successfully');
 
         } catch (error) {
