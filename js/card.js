@@ -693,8 +693,8 @@ class LoadingUI {
         this.overlayElement.className = 'loading-overlay';
         this.overlayElement.innerHTML = `
             <div class="loading-spinner"></div>
-            <div class="loading-title">卡片準備中～</div>
-            <div class="loading-subtitle">看看你今天的運勢如何？</div>
+            <div class="loading-title">靜候，心意的共鳴</div>
+            <div class="loading-subtitle">正在為您翻開，一段專屬的故事頁面</div>
         `;
 
         // Append to body for full viewport coverage
