@@ -406,3 +406,48 @@
         font-size: 11px;
     }
 }
+
+/* Success State Container */
+.comment-success-container {
+    padding: 40px 20px;
+    text-align: center;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.comment-success-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.comment-success-icon {
+    width: 60px;
+    height: 60px;
+    background: #E8F5E9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: #2E7D32;
+    font-weight: bold;
+}
+
+.comment-success-message {
+    font-size: 16px;
+    color: #2E7D32;
+    line-height: 1.6;
+    font-weight: 500;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

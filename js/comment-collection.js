@@ -176,6 +176,19 @@ class CommentPanelManager {
     resetForm() {
         if (!this.form) return;
 
+        // Show form again (in case it was hidden)
+        const form = document.getElementById('commentForm');
+        const successContainer = document.getElementById('commentSuccessContainer');
+
+        if (form) {
+            form.style.display = 'block';
+        }
+
+        // Hide success container
+        if (successContainer) {
+            successContainer.style.display = 'none';
+        }
+
         // Reset form fields
         this.form.reset();
 
@@ -203,9 +216,13 @@ class CommentPanelManager {
 
         console.log('📤 Comment submission started');
 
+        // Set loading state (disable button immediately to prevent double-submission)
+        this.setSubmissionState(true);
+
         // Validate form
         if (!this.validateForm()) {
             console.log('❌ Comment validation failed');
+            this.setSubmissionState(false); // Re-enable button on validation failure
             return;
         }
 
@@ -215,9 +232,6 @@ class CommentPanelManager {
 
         // Track submission time
         const submissionStartTime = Date.now();
-
-        // Set loading state
-        this.setSubmissionState(true);
 
         try {
             // Submit to Google Sheets
@@ -329,10 +343,17 @@ class CommentPanelManager {
 
     // Show success message
     showSuccess() {
-        this.hideMessages();
-        const successElement = document.getElementById('commentSuccess');
-        if (successElement) {
-            successElement.classList.add('show');
+        // Hide the form
+        const form = document.getElementById('commentForm');
+        const successContainer = document.getElementById('commentSuccessContainer');
+
+        if (form) {
+            form.style.display = 'none';
+        }
+
+        // Show success container
+        if (successContainer) {
+            successContainer.style.display = 'block';
         }
     }
 
