@@ -1502,8 +1502,11 @@ function initializeCard() {
         titleElement.textContent = randomText.title;
         descriptionElement.textContent = randomText.description;
 
-        // Handle winner - show contact form when clicking overlay
-        if (randomText.won === 1) {
+        // Store winner status globally for comment system
+        window.currentCardIsWinner = (randomText.won === 1);
+
+        // Handle winner - show contact form when clicking overlay (only if contactFormManager exists)
+        if (randomText.won === 1 && contactFormManager) {
             overlayContainer.classList.add('winner-link');
             overlayContainer.style.cursor = 'pointer';
             overlayContainer.onclick = function(e) {
@@ -1527,65 +1530,62 @@ function initializeCard() {
             overlayContainer.classList.remove('winner-link');
             overlayContainer.style.cursor = 'default';
             overlayContainer.onclick = null;
+            if (randomText.won === 1 && !contactFormManager) {
+                console.log(`ℹ️  Winner text detected but contact form disabled (simple mode)`);
+            }
         }
 
-        // Add heart icon for liking the story (fixed to window corner)
-        // Remove any existing heart icon first
-        const existingHeart = document.querySelector('.heart-icon');
-        if (existingHeart) {
-            existingHeart.remove();
+        // Attach event listener to static heart icon HTML element
+        const heartIcon = document.getElementById('heartIcon');
+        if (heartIcon) {
+            // Reset heart icon to outline state
+            heartIcon.innerHTML = '🤍';
+
+            // Remove any existing click listeners by cloning and replacing
+            const newHeartIcon = heartIcon.cloneNode(true);
+            heartIcon.parentNode.replaceChild(newHeartIcon, heartIcon);
+
+            // Store current story info for the click handler
+            const currentStory = {
+                title: randomText.title,
+                description: randomText.description,
+                won: randomText.won,
+                image: randomImage,
+                probability: randomText.probability
+            };
+
+            // Click handler
+            let hasLiked = false; // Track if user already liked this card
+            newHeartIcon.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent any parent click events
+
+                // Visual feedback
+                if (!hasLiked) {
+                    newHeartIcon.innerHTML = '❤️'; // Filled heart
+                    hasLiked = true;
+                }
+
+                // Animation
+                newHeartIcon.classList.add('clicked');
+                setTimeout(() => {
+                    newHeartIcon.classList.remove('clicked');
+                }, 600);
+
+                // Track to GA4
+                if (window.pushToDataLayer) {
+                    window.pushToDataLayer('story_liked', {
+                        story_text: currentStory.title,
+                        story_description: currentStory.description.substring(0, 100), // First 100 chars
+                        is_winner: currentStory.won === 1,
+                        selected_image: currentStory.image,
+                        text_probability: currentStory.probability,
+                        time_on_page_ms: Date.now() - window.pageLoadTime
+                    });
+                }
+
+                console.log('❤️ Story liked:', currentStory.title);
+            });
         }
-
-        const heartIcon = document.createElement('div');
-        heartIcon.className = 'heart-icon';
-        heartIcon.innerHTML = '🤍'; // Outline heart
-        heartIcon.setAttribute('role', 'button');
-        heartIcon.setAttribute('aria-label', '喜歡這個故事');
-        heartIcon.title = '喜歡這個故事';
-
-        // Store current story info for the click handler
-        const currentStory = {
-            title: randomText.title,
-            description: randomText.description,
-            won: randomText.won,
-            image: randomImage,
-            probability: randomText.probability
-        };
-
-        // Click handler
-        let hasLiked = false; // Track if user already liked this card
-        heartIcon.addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevent any parent click events
-
-            // Visual feedback
-            if (!hasLiked) {
-                heartIcon.innerHTML = '❤️'; // Filled heart
-                hasLiked = true;
-            }
-
-            // Animation
-            heartIcon.classList.add('clicked');
-            setTimeout(() => {
-                heartIcon.classList.remove('clicked');
-            }, 600);
-
-            // Track to GA4
-            if (window.pushToDataLayer) {
-                window.pushToDataLayer('story_liked', {
-                    story_text: currentStory.title,
-                    story_description: currentStory.description.substring(0, 100), // First 100 chars
-                    is_winner: currentStory.won === 1,
-                    selected_image: currentStory.image,
-                    text_probability: currentStory.probability,
-                    time_on_page_ms: Date.now() - window.pageLoadTime
-                });
-            }
-
-            console.log('❤️ Story liked:', currentStory.title);
-        });
-
-        // Append to body (fixed position relative to viewport)
-        document.body.appendChild(heartIcon);
     } else {
         console.error('❌ Text overlay elements not found in DOM');
     }
@@ -1662,9 +1662,30 @@ async function initializeApp() {
         // Now initialize rate limiting system with updated config
         rateLimitManager = new RateLimitManager();
         rateLimitUI = new RateLimitUI(rateLimitManager);
-        contactFormManager = new ContactFormManager();
-        commentPanelManager = new CommentPanelManager();
-        cardEngagementTracker = new CardEngagementTracker();
+
+        // Initialize ContactFormManager only if contact form element exists (card.html)
+        const contactFormElement = document.getElementById('contactFormOverlay');
+        if (contactFormElement && window.ContactFormManager) {
+            contactFormManager = new ContactFormManager();
+            console.log('✅ ContactFormManager initialized (winner features enabled)');
+        } else {
+            console.log('ℹ️  ContactFormManager not initialized (simple mode - no winner features)');
+        }
+
+        // Initialize CommentPanelManager if comment panel exists
+        const commentPanelElement = document.getElementById('commentPanelOverlay');
+        if (commentPanelElement && window.CommentPanelManager) {
+            commentPanelManager = new CommentPanelManager();
+            console.log('✅ CommentPanelManager initialized');
+        }
+
+        // Initialize CardEngagementTracker only if contact form exists (full mode)
+        if (contactFormElement) {
+            cardEngagementTracker = new CardEngagementTracker();
+            console.log('✅ CardEngagementTracker initialized');
+        } else {
+            console.log('ℹ️  CardEngagementTracker not initialized (simple mode)');
+        }
 
         console.log('🔒 Initializing rate limiting system...');
         const rateLimitResult = await rateLimitManager.initialize();

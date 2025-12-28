@@ -25,12 +25,131 @@
     <!-- Access Control - Must load first -->
     <link rel="stylesheet" href="css/access-control.css">
     <script src="js/access-control.js"></script>
+
+    <!-- Cookie Consent -->
+    <link rel="stylesheet" href="css/cookie-consent.css">
+    <script src="js/cookie-consent.js"></script>
+
+    <!-- Google Tag Manager - Loaded conditionally after consent -->
+    <script>
+        // Initialize dataLayer
+        window.dataLayer = window.dataLayer || [];
+
+        // Load analytics configuration from config/analytics.json
+        async function loadAnalyticsConfig() {
+            try {
+                const response = await fetch('config/analytics.json');
+                if (response.ok) {
+                    const config = await response.json();
+                    console.log('⚙️ Analytics config loaded:', config);
+                    return config;
+                } else {
+                    console.warn('⚠️ Failed to load analytics config, using fallback');
+                }
+            } catch (error) {
+                console.warn('⚠️ Failed to load analytics config:', error);
+            }
+
+            // Fallback config
+            return {
+                gtm: {
+                    containerId: 'GTM-NQB6RCSF',
+                    enabled: true
+                }
+            };
+        }
+
+        // Function to load GTM
+        function loadGTM(gtmId) {
+            (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer',gtmId);
+            console.log('✅ GTM loaded:', gtmId);
+
+            // Configure cookie domain after GTM loads
+            setTimeout(configureGA4CookieDomain, 1000); // Wait 1s for GTM to initialize
+        }
+
+        // Configure GA4 cookie domain
+        function configureGA4CookieDomain() {
+            console.log('🔧 Configuring GA4 cookie domain...');
+
+            // Method 1: Using dataLayer (recommended for GTM)
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                'event': 'cookie_config',
+                'cookie_domain': 'auto',
+                'cookie_flags': 'SameSite=None;Secure'
+            });
+
+            // Method 2: Direct gtag configuration (fallback)
+            // Wait for gtag to be available (loaded by GTM's GA4 tag)
+            const waitForGtag = setInterval(function() {
+                if (typeof window.gtag === 'function') {
+                    clearInterval(waitForGtag);
+                    window.gtag('config', 'G-3NKQDRH55Z', {
+                        'cookie_domain': 'auto',
+                        'cookie_flags': 'SameSite=None;Secure'
+                    });
+                    console.log('✅ GA4 cookie domain configured via gtag');
+                }
+            }, 100);
+
+            // Clear interval after 5 seconds to prevent infinite checking
+            setTimeout(function() {
+                clearInterval(waitForGtag);
+            }, 5000);
+        }
+
+        // Initialize GTM with config
+        async function initializeGTM() {
+            const config = await loadAnalyticsConfig();
+
+            if (!config.gtm.enabled) {
+                console.log('📊 GTM disabled in config');
+                return;
+            }
+
+            window.GTM_ID = config.gtm.containerId;
+            window.analyticsConfig = config;
+
+            // Load GTM if consent already granted
+            if (window.cookieConsent && window.cookieConsent.consentStatus === 'accepted') {
+                loadGTM(window.GTM_ID);
+            }
+        }
+
+        // Load GTM when consent is granted
+        if (window.cookieConsent) {
+            window.cookieConsent.onAccept(async function() {
+                if (!window.GTM_ID) {
+                    await initializeGTM();
+                } else {
+                    loadGTM(window.GTM_ID);
+                }
+            });
+        }
+
+        // Initialize on page load
+        initializeGTM();
+    </script>
+
+    <!-- DataLayer Helper -->
+    <script src="js/gtm-datalayer.js"></script>
+
     <!-- Page Styles -->
     <link rel="stylesheet" href="css/card-simple.css">
     <link rel="stylesheet" href="css/text-overlay.css">
     <link rel="stylesheet" href="css/rate-limit-ui.css">
+    <link rel="stylesheet" href="css/comment-panel.css">
 </head>
 <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NQB6RCSF"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
     <div class="container">
         <div class="image-container">
             <img id="cardImage" src="" alt="Card Image" class="card-image">
@@ -41,6 +160,60 @@
         </div>
     </div>
 
-    <script src="js/card-simple.js"></script>
+    <!-- Heart Like Button (fixed to window corner) -->
+    <div class="heart-icon" id="heartIcon" role="button" aria-label="喜歡這個故事" title="喜歡這個故事">🤍</div>
+
+    <!-- Comment Icon (fixed to window corner) -->
+    <div class="comment-icon" id="commentIcon" role="button" aria-label="留言分享故事感想" title="留言分享故事感想">💬</div>
+
+    <!-- Comment Panel -->
+    <div id="commentPanelOverlay" class="comment-panel-overlay">
+        <div class="comment-panel-container">
+            <div class="comment-panel-header">
+                <div class="comment-panel-title">💬 在此，留下您心中的餘韻</div>
+                <button class="comment-panel-close" id="commentPanelClose" aria-label="關閉">✕</button>
+            </div>
+
+            <form id="commentForm" class="comment-form">
+                <div class="form-group">
+                    <label for="commentText" class="form-label">您的留言</label>
+                    <textarea
+                        id="commentText"
+                        name="commentText"
+                        class="form-textarea"
+                        placeholder="寫下此刻腦海中浮現的隻字片語..."
+                        maxlength="500"
+                        required
+                    ></textarea>
+                    <div class="character-counter">
+                        <span id="charCount">0</span> / 500
+                    </div>
+                    <div class="error-message" id="commentTextError">請輸入至少 5 個字的留言</div>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="button" class="form-button form-button-secondary" id="commentCancelButton">暫時放下</button>
+                    <button type="submit" class="form-button form-button-primary" id="commentSubmitButton">
+                        <span id="commentSubmitText">留下</span>
+                        <div class="form-loading" id="commentSubmitLoading">
+                            <div class="form-loading-spinner"></div>
+                            <span>送出中...</span>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="form-success" id="commentSuccess">
+                    讓心意在此安放，成為故事溫柔的註解。
+                </div>
+
+                <div class="form-error" id="commentFormError">
+                    ❌ 心意沒有成功傳遞，請讓我們知道，謝謝你
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/comment-collection.js"></script>
+    <script src="js/card.js"></script>
 </body>
 </html>
