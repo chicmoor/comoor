@@ -1154,23 +1154,25 @@ function getWeightedRandomText(texts) {
 
 // Validate if CSV data looks like text probability data (4 columns: title, description, probability, won)
 function validateTextProbabilitySheet(csvData) {
-    const lines = csvData.trim().split('\n');
-    if (lines.length <= 1) return false; // Need at least header + 1 data row
+    const rows = parseCSVRows(csvData);
+    if (rows.length <= 1) return false; // Need at least header + 1 data row
 
-    // Check first few data lines for expected format (skip header at index 0)
-    let validLines = 0;
-    for (let i = 1; i < Math.min(4, lines.length); i++) { // Check lines 1-3 (skip header)
-        const parts = lines[i].split(',').map(part => part.replace(/^\"|\"$/g, '').trim());
+    // Check first few data rows for expected format (skip header at index 0)
+    let validRows = 0;
+    const rowsToCheck = Math.min(4, rows.length);
+
+    for (let i = 1; i < rowsToCheck; i++) { // Check rows 1-3 (skip header)
+        const parts = rows[i].map(part => part.trim());
         if (parts.length >= 3) {
             const probability = parseFloat(parts[2]); // Probability is in column 3 (index 2)
             if (!isNaN(probability) && probability > 0) {
-                validLines++;
+                validRows++;
             }
         }
     }
 
-    const isValid = validLines > 0;
-    console.log(`🔍 Text probability sheet validation: ${isValid ? '✅ VALID' : '❌ INVALID'} (${validLines}/${Math.min(3, lines.length - 1)} data lines have title, description, and numeric probabilities)`);
+    const isValid = validRows > 0;
+    console.log(`🔍 Text probability sheet validation: ${isValid ? '✅ VALID' : '❌ INVALID'} (${validRows}/${Math.min(3, rows.length - 1)} data rows have title, description, and numeric probabilities)`);
     return isValid;
 }
 
@@ -1225,9 +1227,94 @@ function parseCSVLine(line) {
     return result;
 }
 
+/**
+ * Parse entire CSV string into rows following RFC 4180 standard
+ * This function properly handles multi-line fields by not pre-splitting on newlines
+ *
+ * Handles:
+ * - Fields enclosed in double quotes
+ * - Commas inside quoted fields
+ * - Multi-line fields (newlines inside quotes) - the key feature!
+ * - Escaped quotes ("" becomes ")
+ * - Mixed quoted and unquoted fields
+ *
+ * Returns: Array of rows, where each row is an array of field values
+ */
+function parseCSVRows(csvData) {
+    const rows = [];
+    let currentRow = [];
+    let currentField = '';
+    let inQuotes = false;
+    let i = 0;
+
+    const data = csvData.trim();
+
+    while (i < data.length) {
+        const char = data[i];
+        const nextChar = data[i + 1];
+
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                // Escaped quote: "" → "
+                currentField += '"';
+                i += 2;
+                continue;
+            } else {
+                // Toggle quote state
+                inQuotes = !inQuotes;
+                i++;
+                continue;
+            }
+        }
+
+        if (char === ',' && !inQuotes) {
+            // Field separator (only outside quotes)
+            currentRow.push(currentField);
+            currentField = '';
+            i++;
+            continue;
+        }
+
+        if ((char === '\n' || char === '\r') && !inQuotes) {
+            // Row separator (only outside quotes)
+            // Handle both \n and \r\n line endings
+            if (char === '\r' && nextChar === '\n') {
+                i++; // Skip the \r, will process \n next
+            }
+
+            // Push current field and complete the row
+            currentRow.push(currentField);
+            currentField = '';
+
+            // Only add row if it's not empty (has content beyond empty strings)
+            if (currentRow.some(field => field.trim() !== '')) {
+                rows.push(currentRow);
+            }
+
+            currentRow = [];
+            i++;
+            continue;
+        }
+
+        // Regular character (including newlines inside quotes!)
+        currentField += char;
+        i++;
+    }
+
+    // Handle last field and row if there's no trailing newline
+    if (currentField || currentRow.length > 0) {
+        currentRow.push(currentField);
+        if (currentRow.some(field => field.trim() !== '')) {
+            rows.push(currentRow);
+        }
+    }
+
+    return rows;
+}
+
 // Parse CSV data for text probabilities with title and description
 function parseTextProbabilityCSV(csvData) {
-    const lines = csvData.trim().split('\n');
+    const rows = parseCSVRows(csvData);
     const textsFromSheet = [];
 
     console.log('📊 Raw CSV data from "金句" sheet (expecting title,description,probability,won format):');
@@ -1240,15 +1327,14 @@ function parseTextProbabilityCSV(csvData) {
         console.warn('Please update the sheet to have title, description, probability numbers, and won flags (0/1) in columns 1-4');
     }
 
-    console.log('📋 Processing CSV lines (skipping header row):');
+    console.log('📋 Processing CSV rows (skipping header row):');
+    console.log(`Total rows parsed: ${rows.length}`);
 
     // Skip header row (i=0), start from data row (i=1)
-    for (let i = 1; i < lines.length; i++) {
-        const line = lines[i];
-        console.log(`Line ${i + 1}: "${line}"`);
+    for (let i = 1; i < rows.length; i++) {
+        const parts = rows[i].map(part => part.trim());
 
-        // Handle CSV parsing - use proper RFC 4180 compliant parser
-        const parts = parseCSVLine(line).map(part => part.trim());
+        console.log(`Row ${i + 1}:`);
         console.log(`  Raw parts: [${parts.map(p => `"${p}"`).join(', ')}]`);
 
         if (parts.length >= 3) {
@@ -1260,7 +1346,7 @@ function parseTextProbabilityCSV(csvData) {
             const won = parseInt(fourthColumn);
 
             console.log(`  → Title: "${title}"`);
-            console.log(`  → Description: "${description.substring(0, 50)}${description.length > 50 ? '...' : ''}"`);
+            console.log(`  → Description: "${description.substring(0, 50)}${description.length > 50 ? '...' : ''}" (${description.length} chars total)`);
             console.log(`  → Third column (probability): "${thirdColumn}"`);
             console.log(`  → Fourth column (won): "${fourthColumn}"`);
             console.log(`  → Parsed probability: ${probability} (valid: ${!isNaN(probability)})`);
@@ -1283,7 +1369,7 @@ function parseTextProbabilityCSV(csvData) {
             console.log(`  → Single column title: "${title}"`);
             console.log(`  ❌ Skipped: no probability column found`);
         } else {
-            console.log(`  ❌ Skipped: insufficient data`);
+            console.log(`  ❌ Skipped: insufficient data (${parts.length} columns)`);
         }
     }
 
