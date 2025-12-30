@@ -143,7 +143,7 @@
     <link rel="stylesheet" href="css/card-simple.css">
     <link rel="stylesheet" href="css/text-overlay.css">
     <link rel="stylesheet" href="css/rate-limit-ui.css">
-    <link rel="stylesheet" href="css/comment-panel.css">
+    <link rel="stylesheet" href="css/footer-ui.css">
 </head>
 <body>
     <!-- Google Tag Manager (noscript) -->
@@ -157,73 +157,46 @@
                 <h3 class="text-overlay-title"></h3>
                 <p class="text-overlay-description"></p>
             </div>
-        </div>
-    </div>
 
-    <!-- Heart Like Button (fixed to window corner) -->
-    <div class="heart-icon" id="heartIcon" role="button" aria-label="喜歡這個故事" title="喜歡這個故事">🤍</div>
-
-    <!-- Comment Icon (fixed to window corner) -->
-    <div class="comment-icon" id="commentIcon" role="button" aria-label="留言分享故事感想" title="留言分享故事感想">💬</div>
-
-    <!-- Comment Panel -->
-    <div id="commentPanelOverlay" class="comment-panel-overlay">
-        <div class="comment-panel-container">
-            <div class="comment-panel-header">
-                <div class="comment-panel-title">💬 在此，留下您心中的餘韻</div>
-                <button class="comment-panel-close" id="commentPanelClose" aria-label="關閉">✕</button>
-            </div>
-
-            <form id="commentForm" class="comment-form">
-                <div class="form-group">
-                    <label for="commentText" class="form-label">您的留言</label>
-                    <textarea
-                        id="commentText"
-                        name="commentText"
-                        class="form-textarea"
+            <!-- Footer UI - Comment Input with Like Button -->
+            <div id="footerUI" class="footer-ui">
+                <div class="footer-input-wrapper">
+                    <input
+                        type="text"
+                        id="footerInput"
+                        class="footer-input"
                         placeholder="寫下此刻腦海中浮現的隻字片語..."
                         maxlength="500"
-                        required
-                    ></textarea>
-                    <div class="character-counter">
-                        <span id="charCount">0</span> / 500
-                    </div>
-                    <div class="error-message" id="commentTextError">請輸入至少 5 個字的留言</div>
+                        autocomplete="off"
+                    >
+                    <span id="footerCharCounter" class="footer-char-counter">0/500</span>
+                    <svg id="footerSendIcon" class="footer-send-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
                 </div>
-
-                <div class="form-buttons">
-                    <button type="button" class="form-button form-button-secondary" id="commentCancelButton">取消</button>
-                    <button type="submit" class="form-button form-button-primary" id="commentSubmitButton">
-                        <span id="commentSubmitText">送出</span>
-                        <div class="form-loading" id="commentSubmitLoading">
-                            <div class="form-loading-spinner"></div>
-                            <span>送出中...</span>
-                        </div>
-                    </button>
-                </div>
-
-                <div class="form-success" id="commentSuccess">
-                    讓心意在此安放，成為故事溫柔的註解。
-                </div>
-
-                <div class="form-error" id="commentFormError">
-                    ❌ 心意沒有成功傳遞，請讓我們知道，謝謝你
-                </div>
-            </form>
-
-            <!-- Success State Container -->
-            <div id="commentSuccessContainer" class="comment-success-container" style="display: none;">
-                <div class="comment-success-content">
-                    <div class="comment-success-icon">✓</div>
-                    <div class="comment-success-message">
-                        讓心意在此安放，成為故事溫柔的註解。
-                    </div>
-                </div>
+                <svg
+                    id="footerHeartIcon"
+                    class="footer-heart-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    data-outline='<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>'
+                    data-filled='<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="white"></path>'
+                >
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
             </div>
+
+            <!-- Toast Notification -->
+            <div id="footerToast" class="footer-toast"></div>
         </div>
     </div>
 
-    <script src="js/comment-collection.js"></script>
+    <script src="js/footer-ui.js"></script>
     <script src="js/card.js"></script>
 </body>
 </html>

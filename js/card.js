@@ -1535,55 +1535,14 @@ function initializeCard() {
             }
         }
 
-        // Attach event listener to static heart icon HTML element
-        const heartIcon = document.getElementById('heartIcon');
-        if (heartIcon) {
-            // Reset heart icon to outline state
-            heartIcon.innerHTML = '🤍';
-
-            // Remove any existing click listeners by cloning and replacing
-            const newHeartIcon = heartIcon.cloneNode(true);
-            heartIcon.parentNode.replaceChild(newHeartIcon, heartIcon);
-
-            // Store current story info for the click handler
-            const currentStory = {
+        // Update footer UI with current story information
+        if (window.footerUIManager) {
+            window.footerUIManager.updateStory({
                 title: randomText.title,
                 description: randomText.description,
                 won: randomText.won,
                 image: randomImage,
                 probability: randomText.probability
-            };
-
-            // Click handler
-            let hasLiked = false; // Track if user already liked this card
-            newHeartIcon.addEventListener('click', function(e) {
-                e.stopPropagation(); // Prevent any parent click events
-
-                // Visual feedback
-                if (!hasLiked) {
-                    newHeartIcon.innerHTML = '❤️'; // Filled heart
-                    hasLiked = true;
-                }
-
-                // Animation
-                newHeartIcon.classList.add('clicked');
-                setTimeout(() => {
-                    newHeartIcon.classList.remove('clicked');
-                }, 600);
-
-                // Track to GA4
-                if (window.pushToDataLayer) {
-                    window.pushToDataLayer('story_liked', {
-                        story_text: currentStory.title,
-                        story_description: currentStory.description.substring(0, 100), // First 100 chars
-                        is_winner: currentStory.won === 1,
-                        selected_image: currentStory.image,
-                        text_probability: currentStory.probability,
-                        time_on_page_ms: Date.now() - window.pageLoadTime
-                    });
-                }
-
-                console.log('❤️ Story liked:', currentStory.title);
             });
         }
     } else {

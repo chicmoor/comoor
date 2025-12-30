@@ -1,0 +1,365 @@
+/* ===========================================
+   FOOTER UI STYLES
+   Comment Input with Like Button
+   =========================================== */
+/*
+ * Replaces:
+ *   - text-overlay.css (heart icon section, lines 88-155)
+ *   - comment-panel.css (entire file)
+ *
+ * Features:
+ *   - Fixed footer bar with semi-transparent black background
+ *   - Pill-shaped text input for comments
+ *   - Conditional send icon (inside input)
+ *   - Always-visible heart icon (outside input)
+ *   - Character counter with color-coded warnings
+ *   - Toast notifications for success/error states
+ *   - Full responsive design for mobile/tablet
+ */
+
+/* ============================================
+   FOOTER CONTAINER
+   ============================================ */
+
+.footer-ui {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); /* Safari support */
+    padding: 12px 16px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: transform 0.3s ease;
+}
+
+/* ============================================
+   INPUT WRAPPER & TEXT INPUT
+   ============================================ */
+
+.footer-input-wrapper {
+    flex: 1;
+    max-width: 75%;
+    position: relative;
+}
+
+.footer-input {
+    width: 100%;
+    padding: 12px 48px 12px 20px; /* Right padding for send icon */
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 24px; /* Pill shape */
+    background: transparent;
+    color: white;
+    font-size: 16px; /* Prevents iOS auto-zoom */
+    font-family: inherit;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.footer-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.footer-input:focus {
+    border-color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.footer-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   SEND ICON (INSIDE INPUT, CONDITIONAL)
+   ============================================ */
+
+.footer-send-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease;
+}
+
+.footer-send-icon.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.footer-send-icon:hover {
+    transform: translateY(-50%) scale(1.1);
+}
+
+.footer-send-icon:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+/* ============================================
+   HEART ICON (OUTSIDE INPUT, ALWAYS VISIBLE)
+   ============================================ */
+
+.footer-heart-icon {
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.footer-heart-icon:hover {
+    transform: scale(1.15);
+}
+
+.footer-heart-icon:active {
+    transform: scale(0.95);
+}
+
+.footer-heart-icon.liked {
+    animation: heartBeat 0.6s ease;
+}
+
+@keyframes heartBeat {
+    0% { transform: scale(1); }
+    15% { transform: scale(1.3); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.25); }
+    60% { transform: scale(1); }
+    100% { transform: scale(1); }
+}
+
+/* ============================================
+   CHARACTER COUNTER
+   ============================================ */
+
+.footer-char-counter {
+    position: absolute;
+    right: 48px; /* Before send icon */
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.footer-char-counter.visible {
+    opacity: 1;
+}
+
+.footer-char-counter.warning {
+    color: #ff9800; /* Orange at 450 chars */
+    font-weight: bold;
+}
+
+.footer-char-counter.limit {
+    color: #f44336; /* Red at 500 chars */
+    font-weight: bold;
+}
+
+/* ============================================
+   TOAST NOTIFICATIONS
+   ============================================ */
+
+.footer-toast {
+    position: absolute;
+    bottom: 80px; /* Above footer */
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: white;
+    color: #333;
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 999;
+    opacity: 0;
+    transition: all 0.3s ease;
+    max-width: 90%;
+    text-align: center;
+    pointer-events: none;
+}
+
+.footer-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.footer-toast.success {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.footer-toast.error {
+    background: #FFEBEE;
+    color: #C62828;
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+/* Tablet (768px and below) */
+@media (max-width: 768px) {
+    .footer-ui {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .footer-input-wrapper {
+        max-width: 80%;
+    }
+
+    .footer-input {
+        font-size: 15px;
+        padding: 10px 44px 10px 16px;
+    }
+
+    .footer-send-icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    .footer-heart-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .footer-char-counter {
+        right: 44px;
+        font-size: 10px;
+    }
+
+    .footer-toast {
+        bottom: 70px;
+        font-size: 13px;
+        padding: 10px 20px;
+    }
+}
+
+/* Mobile (480px and below) */
+@media (max-width: 480px) {
+    .footer-ui {
+        padding: 8px 10px;
+        gap: 8px;
+    }
+
+    .footer-input-wrapper {
+        max-width: 85%;
+    }
+
+    .footer-input {
+        font-size: 14px;
+        padding: 8px 40px 8px 14px;
+        border-radius: 20px;
+    }
+
+    .footer-send-icon {
+        width: 20px;
+        height: 20px;
+        right: 10px;
+    }
+
+    .footer-heart-icon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .footer-char-counter {
+        right: 40px;
+        font-size: 9px;
+    }
+
+    .footer-toast {
+        bottom: 60px;
+        font-size: 12px;
+        padding: 8px 16px;
+        max-width: 95%;
+    }
+}
+
+/* Extra small screens (360px and below) */
+@media (max-width: 360px) {
+    .footer-input-wrapper {
+        max-width: 82%;
+    }
+
+    .footer-input {
+        font-size: 13px;
+        padding: 7px 38px 7px 12px;
+    }
+
+    .footer-send-icon {
+        width: 18px;
+        height: 18px;
+        right: 8px;
+    }
+
+    .footer-heart-icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    .footer-char-counter {
+        display: none; /* Hide counter on very small screens */
+    }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+/* Focus visible for keyboard navigation */
+.footer-input:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
+.footer-send-icon:focus-visible,
+.footer-heart-icon:focus-visible {
+    outline: 2px solid white;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .footer-ui {
+        background: rgba(0, 0, 0, 0.9);
+    }
+
+    .footer-input {
+        border-color: white;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .footer-input,
+    .footer-send-icon,
+    .footer-heart-icon,
+    .footer-char-counter,
+    .footer-toast {
+        transition: none;
+    }
+
+    .footer-heart-icon.liked {
+        animation: none;
+        transform: scale(1.1);
+    }
+
+    @keyframes heartBeat {
+        0%, 100% { transform: scale(1); }
+    }
+}
