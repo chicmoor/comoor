@@ -1,0 +1,30 @@
+{
+  "version": "20251231.1",
+  "comment": "Update version number when deploying changes. Format: YYYYMMDD.N",
+  "files": {
+    "css": {
+      "access-control.css": "20251231.1",
+      "card.css": "20251231.1",
+      "card-simple.css": "20251231.1",
+      "contact-form.css": "20251231.1",
+      "cookie-consent.css": "20251231.1",
+      "footer-ui.css": "20251231.1",
+      "rate-limit-ui.css": "20251231.1",
+      "text-overlay.css": "20251231.1"
+    },
+    "js": {
+      "access-control.js": "20251231.1",
+      "card.js": "20251231.1",
+      "contact-collection.js": "20251231.1",
+      "cookie-consent.js": "20251231.1",
+      "footer-ui.js": "20251231.1",
+      "gtm-datalayer.js": "20251231.1",
+      "scroll-forwarding.js": "20251231.1"
+    }
+  },
+  "usage": {
+    "globalUpdate": "Change 'version' at the top to update all files at once",
+    "individualUpdate": "Change specific file version in 'files' object for targeted updates",
+    "deployment": "Always commit this file with your code changes and deploy together"
+  }
+}

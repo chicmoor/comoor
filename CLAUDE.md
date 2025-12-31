@@ -262,3 +262,61 @@ Both HTML files load access control resources first (before other scripts):
 - **Bookmarks**: Direct bookmarks to cleaned URL will be blocked
 - **Dev/Testing**: Set `enabled: false` in config.json to disable during development
 - **Combining Parameters**: Can combine with dev mode: `?from=picsee&dev=true`
+
+## Cache-Busting System
+
+### Overview
+All external CSS and JavaScript files use query string versioning to ensure users receive the latest versions after deployments and prevent browser caching issues.
+
+### Versioning Format
+**Pattern**: `?v=YYYYMMDD.N` (Date + Patch Number)
+- Example: `?v=20251231.1` (December 31, 2025, patch 1)
+- Example: `?v=20251231.2` (Second deployment same day)
+- Example: `?v=20260101.1` (First deployment next day)
+
+### Configuration
+**File**: `config/cache-version.json`
+
+This file serves as the single source of truth for all cache versions. It contains:
+- Global `version` field for bulk updates
+- Individual file versions in `files.css` and `files.js` objects for targeted updates
+
+### Implementation
+Resource references in HTML files include version query strings:
+- `card.html`: 13 versioned resources (6 CSS + 7 JS)
+- `card-simple.html`: 11 versioned resources (5 CSS + 6 JS)
+- `campaign.html`: No versioned resources (uses inline CSS/JS only)
+
+### Maintenance Workflow
+
+#### Bulk Update (All Files)
+1. Make code changes to CSS/JS files
+2. Open `config/cache-version.json`
+3. Increment the global `version` field (e.g., `20251231.1` → `20251231.2`)
+4. Update ALL `?v=` query strings in `card.html` and `card-simple.html` to match
+5. Commit all changes together
+6. Deploy to GitHub Pages
+
+#### Targeted Update (Single File)
+1. Make code change to specific file (e.g., `css/footer-ui.css`)
+2. Open `config/cache-version.json`
+3. Update only that file's version in the `files` object
+4. Update only that file's `?v=` query string in the relevant HTML files
+5. Commit and deploy
+
+### Deployment Checklist
+**Pre-Deployment**:
+- [ ] Determine version number (format: `YYYYMMDD.N`)
+- [ ] Update `config/cache-version.json`
+- [ ] Update all affected `?v=` query strings in HTML files
+- [ ] Verify version numbers match
+
+**Post-Deployment**:
+- [ ] Test in browser with hard refresh (Cmd+Shift+R)
+- [ ] Check Network tab for correct version query strings
+- [ ] Verify no 404 errors
+
+### Important Notes
+- **Manual process**: Must remember to update versions on every CSS/JS deployment
+- **Synchronization**: Version numbers in HTML must match config file
+- **Testing**: Always verify in browser Network tab after deployment
