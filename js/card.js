@@ -1666,6 +1666,7 @@ let loadingUI = null;
 let contactFormManager = null;
 let commentPanelManager = null;
 let cardEngagementTracker = null;
+let scrollForwardingManager = null;
 
 // Initialize the application with rate limiting and loading spinner
 async function initializeApp() {
@@ -1765,6 +1766,16 @@ async function initializeApp() {
 
         // Record this card request
         await rateLimitManager.recordCardRequest();
+
+        // Initialize scroll forwarding after card is loaded
+        // Use setTimeout to ensure DOM has been fully rendered and layout calculated
+        if (window.ScrollForwardingManager) {
+            setTimeout(() => {
+                scrollForwardingManager = new ScrollForwardingManager();
+                scrollForwardingManager.initialize();
+                console.log('✅ ScrollForwardingManager initialized');
+            }, 100); // Small delay to ensure layout is calculated
+        }
 
         // Show brief success indicator
         if (rateLimitResult.reason !== 'no_previous_limit') {
